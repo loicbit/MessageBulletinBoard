@@ -1,0 +1,15 @@
+
+U
+java:S1197"8Move the array designator from the variable to the type.(õÝš‘8­ŸÓ¯Ã/
+W
+java:S1141""5Extract this nested try block into a separate method.(¡»¢üùÿÿÿÿ8²€ò¯Ã/
+U	java:S106*"9Replace this use of System.out or System.err by a logger.(ë±»±8­ŸÓ¯Ã/
+U	java:S106,"9Replace this use of System.out or System.err by a logger.(Çä®²8­ŸÓ¯Ã/
+M
+java:S1128"1Remove this unused import 'java.util.LinkedList'.(»Äð18ï°´âÄ/
+r	java:S116"WRename this field "NUMBER_CELLS" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(éó·8­ŸÓ¯Ã/
+]	java:S1258"<This block of commented-out lines of code should be removed.(ÊÃöàþÿÿÿÿ8íÊ‘ãÃ/
+{	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(·¯Ç²þÿÿÿÿ8­ŸÓ¯Ã/
+q
+java:S1128	"TRemove this unnecessary import: same package classes are always implicitly imported.(‘³Ø¢8ï°´âÄ/
+]	java:S1255"<This block of commented-out lines of code should be removed.(øå÷÷ýÿÿÿÿ8üÍ“ãÃ/

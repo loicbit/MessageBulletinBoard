@@ -1,0 +1,8 @@
+
+T
+java:S1135"2Complete the task associated to this TODO comment.(ÓÁ›¬ÿÿÿÿÿ8›ÃñºÃ/
+u	java:S115"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(á¤Âl8›‘´âÃ/
+]	java:S125"<This block of commented-out lines of code should be removed.(¾ÍÑ³úÿÿÿÿ8àÈ”¹Ã/
+{	java:S115"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(É¨ÏÀüÿÿÿÿ8üþžâÃ/
+]	java:S125"<This block of commented-out lines of code should be removed.(ñêŸäÿÿÿÿÿ8àÈ”¹Ã/
+{	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(·¯Ç²þÿÿÿÿ8àÈ”¹Ã/

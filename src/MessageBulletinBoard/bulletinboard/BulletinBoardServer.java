@@ -7,6 +7,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import MessageBulletinBoard.bulletinboard.*;
+import MessageBulletinBoard.data.CellPair;
 
 import java.util.LinkedList;
 
@@ -30,14 +31,13 @@ public class BulletinBoardServer implements BulletinBoardInterface{
             BulletinBoardInterface stub = (BulletinBoardInterface) UnicastRemoteObject.exportObject(obj, 0);
 
 
-
             try{
-                registry = LocateRegistry.createRegistry(2001);
+                registry = LocateRegistry.createRegistry(BulletinBoardInterface.REG_PORT);
             }catch(Exception e) {
-                registry = LocateRegistry.getRegistry(2001);
+                registry = LocateRegistry.getRegistry(BulletinBoardInterface.REG_PORT);
             }
 
-            registry.bind("rmi:bulletinboard", stub);
+            registry.bind(BulletinBoardInterface.STUB_NAME, stub);
 
             System.err.println("Server ready");
         }catch (Exception e) {
@@ -47,11 +47,32 @@ public class BulletinBoardServer implements BulletinBoardInterface{
 
     @Override
     public String get(int i, String b) throws RemoteException {
+        String message = null;
+        CellPair toRemove = null;
+
+        //String hashB = new String(md.digest(b.getBytes()));
+
+        for (CellPair pair : this.cells[i].getCellPairs()) {
+            /*if (pair.getTag().equals(hashB)) {
+                message = pair.getValue();
+                toRemove = pair;
+            }*/
+            if (pair.getTag().equals(b)) {
+                message = pair.getValue();
+                toRemove = pair;
+            }
+        }
+
+        if (toRemove != null) {
+            this.cells[i].removePair(toRemove);
+            return message;
+        }
         return null;
     }
 
     @Override
     public void add(int index, String value, String tag) throws RemoteException {
-
+        CellPair newPair = new CellPair(value, tag);
+        this.cells[index].addPair(newPair);
     }
 }

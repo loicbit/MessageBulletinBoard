@@ -1,0 +1,34 @@
+
+Q
+java:S1068"4Remove this unused "firstStateHashes" private field.(‡†Óë8Ë®»êÄ/
+L
+java:S3740"/Provide the parametrized type for this generic.(Ï©¥ 8æãÄ/
+O
+java:S1135C"2Complete the task associated to this TODO comment.(ÙÓ×ˆ8‰Ç¹Ã/
+[
+java:S2130j"9Use "Integer.parseInt" for this string-to-int conversion.(‚ªåøÿÿÿÿ8è³¶êÄ/
+N
+java:S1068"1Remove this unused "securityParam" private field.(òéÃë8ÖíêÄ/
+O
+java:S1135U"2Complete the task associated to this TODO comment.(£ñ†8¶™ÃãÄ/
+T
+java:S1135"2Complete the task associated to this TODO comment.(¨ù¬şÿÿÿÿ8ø×¹Ã/
+]	java:S125K"<This block of commented-out lines of code should be removed.(²¼Ï…ıÿÿÿÿ8Ë®»êÄ/
+W
+java:S1141#"5Extract this nested try block into a separate method.(¡»¢üùÿÿÿÿ8ÍÑÚ¯Ã/
+U	java:S106,"9Replace this use of System.out or System.err by a logger.(ë±»±8‰Ç¹Ã/
+g	java:S112"FDefine and throw a dedicated exception instead of using a generic one.(É¢£Æıÿÿÿÿ8Ì©°¹Ã/
+U
+java:S1197h"8Move the array designator from the variable to the type.(ó®Ê8è³¶êÄ/
+Z
+java:S4719b"=Replace Charset.forName() call with StandardCharsets.US_ASCII(¿’œñ8¾ƒÿéÄ/
+L
+java:S3740"/Provide the parametrized type for this generic.(ÃŸ‚²8ü÷²êÄ/
+T
+java:S1068"2Remove this unused "firstStateHash" private field.(¿œ›¶üÿÿÿÿ8‰Ç¹Ã/
+T
+java:S11358"2Complete the task associated to this TODO comment.(¹ †Şÿÿÿÿÿ8ïÏ»Ã/
+@
+java:S2119]"Save and re-use this "Random".(šŸ«íøÿÿÿÿ8¾ƒÿéÄ/
+{	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(¦¨ÊÛüÿÿÿÿ8ÍÑÚ¯Ã/
+g	java:S112."FDefine and throw a dedicated exception instead of using a generic one.(Ïã¡İşÿÿÿÿ8Ûª±¹Ã/

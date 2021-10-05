@@ -1,0 +1,35 @@
+
+i	java:S116"ORename this field "ALGO" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(Çãò´øÿÿÿÿ
+F
+java:S1068"+Remove this unused "keyPair" private field.(Û×Ë¯øÿÿÿÿ
+`
+java:S2147g"ECombine this catch with the one at line 101, which has the same body.(½å€ùûÿÿÿÿ
+\
+java:S2147"ECombine this catch with the one at line 121, which has the same body.(çŞ¡Ğ
+`
+java:S2147}"ECombine this catch with the one at line 121, which has the same body.(“³Ûİüÿÿÿÿ
+Z
+java:S2147{"ECombine this catch with the one at line 121, which has the same body.(ÿÒ„p
+?
+java:S5411<"*Use the primitive boolean expression here.(¦¾æ
+U
+java:S4426*"?Use a key length of at least 2048 bits for DH cipher algorithm.(ŞÊ‡ñ
+>
+java:S5542R"#Use secure mode and padding scheme.(‹óı¯ûÿÿÿÿ
+r
+java:S1450"URemove the "pubKey" field and declare it as a local variable in the relevant methods.(³§ÒÈ8¨‚ÖÚÄ/
+a
+java:S2147ƒ"ECombine this catch with the one at line 121, which has the same body.(©Ë¸Ãşÿÿÿÿ
+>
+java:S5542t"#Use secure mode and padding scheme.(¤ı…çúÿÿÿÿ
+>
+java:S5542Y"#Use secure mode and padding scheme.(‹óı¯ûÿÿÿÿ
+G
+java:S1068"*Remove this unused "pubKey" private field.(³§ÒÈ8¨‚ÖÚÄ/
+W
+java:S2259j"AA "NullPointerException" could be thrown; "key" is nullable here.(ŞšÛÂ
+m
+java:S1450"WRemove the "kPairGen" field and declare it as a local variable in the relevant methods.(é×ğä
+t	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(úŒ–İúÿÿÿÿ
+`
+java:S2147"ECombine this catch with the one at line 121, which has the same body.(½å€ùûÿÿÿÿ

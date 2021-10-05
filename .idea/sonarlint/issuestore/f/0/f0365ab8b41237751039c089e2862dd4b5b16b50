@@ -1,0 +1,41 @@
+
+{	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(¦¨ÊÛüÿÿÿÿ8Ö½ô¯Ã/
+G
+java:S5411Œ"*Use the primitive boolean expression here.(ÉÈò{8˜ÒëÄ/
+J
+java:S1604O"(Make this anonymous inner class a lambda(¶‹ùÿÿÿÿÿÿ8òŞùàÄ/
+O
+java:S1135p"2Complete the task associated to this TODO comment.(‚÷¥™8²ØèãÃ/
+J
+java:S1604/"(Make this anonymous inner class a lambda(Ï÷…ÿÿÿÿÿ8Ö½ô¯Ã/
+L
+java:S3740"/Provide the parametrized type for this generic.(ãì ¡8Ö½ô¯Ã/
+J
+java:S1604)"(Make this anonymous inner class a lambda(±¸øõıÿÿÿÿ8Ö½ô¯Ã/
+b
+java:S2583ƒ"DChange this condition so that it does not always evaluate to "false"(©“æª8˜ÒëÄ/
+L
+java:S5411w"*Use the primitive boolean expression here.(™ıÂÖüÿÿÿÿ8ÜşĞëÄ/
+U
+java:S1135Š"2Complete the task associated to this TODO comment.(‡•öêıÿÿÿÿ8˜ÒëÄ/
+E	java:S108•")Either remove or fill this block of code.(ÂÓ¤v8˜ÒëÄ/
+U	java:S106b"9Replace this use of System.out or System.err by a logger.(ö¬8å×òŞÄ/
+{
+java:S1450"YRemove the "userServer" field and declare it as a local variable in the relevant methods.(Œ”üÆıÿÿÿÿ8‹Ì´éÄ/
+g
+java:S3252¾"IUse static access with "javax.swing.WindowConstants" for "EXIT_ON_CLOSE".(¢¡´8˜ÒëÄ/
+T
+java:S1135i"2Complete the task associated to this TODO comment.(¡Õ‘Úÿÿÿÿÿ8İ© µÃ/
+Q
+java:S3740 "/Provide the parametrized type for this generic.(˜ÏÿÆşÿÿÿÿ8Û›­àÄ/
+T
+java:S1135c"2Complete the task associated to this TODO comment.(¾Å¤ƒúÿÿÿÿ8İË£¹Ã/
+^	java:S125"<This block of commented-out lines of code should be removed.(‡—¸‹ÿÿÿÿÿ8˜ÒëÄ/
+E
+java:S16046"(Make this anonymous inner class a lambda(äõÔ—8Ö½ô¯Ã/
+P
+java:S1135€"2Complete the task associated to this TODO comment.(§»ğú8˜ÒëÄ/
+P
+java:S1068".Remove this unused "userServer" private field.(Œ”üÆıÿÿÿÿ8‹Ì´éÄ/
+E
+java:S1604#"(Make this anonymous inner class a lambda(Âƒ³Õ8ñü€µÃ/

@@ -1,0 +1,12 @@
+
+E
+java:S1068"(Remove this unused "name" private field.(ëÄÎş8ÔıÖ´Ã/
+J
+java:S1068"-Remove this unused "publicKey" private field.(´Ë™º8ªÎô±Ã/
+R
+java:S1068"5Remove this unused "cellLocationIndex" private field.(¯“„8‹íå¹Ã/
+n	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(é­¯k
+I
+java:S1068	"'Remove this unused "tag" private field.(„‚öûÿÿÿÿ8Íæ¹Ã/
+N
+java:S1135"2Complete the task associated to this TODO comment.(¥ÈşQ8ÁğÌºÃ/

@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 public class CellLocationPair {
     private int index;
     private String tag;
+    public static String divider = "DIVCELLP";
 
     public String getTagHash() {
         return tagHash;
@@ -47,6 +48,10 @@ public class CellLocationPair {
 
     }
 
+    @Override
+    public String toString() {
+        return index +  CellLocationPair.divider + tag;
+    }
 
     @Override
     public boolean equals(Object obj) {

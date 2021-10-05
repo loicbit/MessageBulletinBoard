@@ -1,0 +1,44 @@
+
+@
+java:S2119e"Save and re-use this "Random".(šŸ«íøÿÿÿÿ8³íêÄ/
+Z
+java:S4719j"=Replace Charset.forName() call with StandardCharsets.US_ASCII(¿’œñ8³íêÄ/
+Z
+java:S1117G"=Rename "publicKey" which hides the field declared at line 24.(ÀÑ¥Ì8½¯‡ëÄ/
+O
+java:S1135"2Complete the task associated to this TODO comment.(“½òÄ8Â¢ß¼Ã/
+
+java:S1186o"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(±»Ç©8·ôÙÄ/
+J
+java:S2447N"-Null is returned but a "Boolean" is expected.(ûÛİõ8ËÔ‰ëÄ/
+U	java:S106#"9Replace this use of System.out or System.err by a logger.(ö¬8Œ”èŞÄ/
+Z
+java:S1197V"8Move the array designator from the variable to the type.(õÖîÃüÿÿÿÿ8ÅÔ“¾Ã/
+O
+java:S1135C"2Complete the task associated to this TODO comment.(Œ¡ş¯8÷ûöÙÄ/
+t	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(¦¨ÊÛüÿÿÿÿ
+e
+java:S2583^"CChange this condition so that it does not always evaluate to "true"(›÷¿Õşÿÿÿÿ8³ä§ÙÄ/
+b	java:S112"FDefine and throw a dedicated exception instead of using a generic one.(á´Š¦8˜ÁË»Ã/
+†
+java:S1488H"iImmediately return this expression instead of assigning it to the temporary variable "firstCellReceived".(€ù‘‡8ÓØŠëÄ/
+Z
+java:S1854G"=Remove this useless assignment to local variable "publicKey".(ÀÑ¥Ì8½¯‡ëÄ/
+K
+java:S1481G".Remove this unused "publicKey" local variable.(ÀÑ¥Ì8½¯‡ëÄ/
+E
+java:S1068"(Remove this unused "name" private field.(Ë¥¼8ªª€¾Ã/
+O
+java:S1172o"2Remove this unused method parameter "nameContact".(±»Ç©8¹€õÙÄ/
+Z	java:S106+"9Replace this use of System.out or System.err by a logger.(¨¶ÑÍşÿÿÿÿ8şšìŞÄ/
+W
+java:S1144o":Remove this unused private "getSecurityParameters" method.(±»Ç©8·ôÙÄ/
+c
+java:S1126^"AReplace this if-then-else statement by a single return statement.(›÷¿Õşÿÿÿÿ8³ä§ÙÄ/
+T
+java:S1135'"2Complete the task associated to this TODO comment.(¨ù¬şÿÿÿÿ8ªª€¾Ã/
+[
+java:S2130X"9Use "Integer.parseInt" for this string-to-int conversion.(‚ªåøÿÿÿÿ8ÅÔ“¾Ã/
+X	java:S125`"<This block of commented-out lines of code should be removed.(å‚öĞ8ëÂ”¿Ã/
+X	java:S125,"<This block of commented-out lines of code should be removed.(²‰Œø8¥éìŞÄ/
+Z	java:S1062"9Replace this use of System.out or System.err by a logger.(¨¶ÑÍşÿÿÿÿ8şšìŞÄ/

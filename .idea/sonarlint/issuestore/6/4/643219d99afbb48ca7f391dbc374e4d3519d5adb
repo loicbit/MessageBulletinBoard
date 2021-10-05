@@ -1,0 +1,4 @@
+
+l	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(é­¯k
+‰
+java:S1319"uThe type of the "cellPairs" object should be an interface such as "List" rather than the implementation "LinkedList".(ÿªÛÚ

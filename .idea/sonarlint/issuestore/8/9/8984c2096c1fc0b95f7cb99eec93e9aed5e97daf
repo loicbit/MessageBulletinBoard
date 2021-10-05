@@ -1,0 +1,16 @@
+
+p
+java:S1104	"SMake divider a static final constant or non-public and provide accessors if needed.(¿ôßÛ8ÜÁ…¹Ã/
+b
+java:S2259""@A "NullPointerException" could be thrown; "md" is nullable here.(þœÐ‘úÿÿÿÿ8å½ƒ¹Ã/
+<
+java:S20979"Add a type test to this method.(ÜÑã8å½ƒ¹Ã/
+J
+java:S1444	"-Make this "public static divider" field final(¿ôßÛ8°íˆ¹Ã/
+=
+java:S2129G" Remove this "String" constructor(ÇË›û8å½ƒ¹Ã/
+u	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(é­¯k8å½ƒ¹Ã/
+m
+java:S12069"PThis class overrides "equals()" and should therefore also override "hashCode()".(ÜÑã8å½ƒ¹Ã/
+=
+java:S2129G" Remove this "String" constructor(ÇË›û8å½ƒ¹Ã/

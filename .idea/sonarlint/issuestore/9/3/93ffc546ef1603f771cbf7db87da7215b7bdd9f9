@@ -1,0 +1,35 @@
+
+Z
+java:S1197W"8Move the array designator from the variable to the type.(›¨ÇÃúÿÿÿÿ8ê®ôéÄ/
+n
+java:S1128"LRemove this unused import 'MessageBulletinBoard.client.UserServerInterface'.(Ïüßüÿÿÿÿ8õ°´âÄ/
+ 
+java:S1319"~The type of the "nextCellLocationPairAB" object should be an interface such as "Map" rather than the implementation "HashMap".(Ï‘§âúÿÿÿÿ8¢î‡ìÄ/
+
+java:S2175&"]A "HashMap<String, CellLocationPair>" cannot contain a "String" in a "CellLocationPair" type.(ı»»…şÿÿÿÿ8²ÚÜäÄ/
+T
+java:S1135;"2Complete the task associated to this TODO comment.(Úã³şÿÿÿÿ8ÃÔãÄ/
+Z
+java:S4719B"=Replace Charset.forName() call with StandardCharsets.US_ASCII(¿’œñ8ÃÔãÄ/
+z
+java:S21750"]A "HashMap<String, CellLocationPair>" cannot contain a "String" in a "CellLocationPair" type.(ŒŒŒ®8²ÚÜäÄ/
+@
+java:S2119<"Save and re-use this "Random".(šŸ«íøÿÿÿÿ8ÃÔãÄ/
+„
+java:S1104"bMake nextCellLocationPairAB a static final constant or non-public and provide accessors if needed.(Ï‘§âúÿÿÿÿ8¢î‡ìÄ/
+L
+java:S1172"/Remove this unused method parameter "nameUser".(×¶àÈ8¾”ÈàÃ/
+q
+java:S38246"OReplace this "Map.get()" and condition with a call to "Map.computeIfPresent()".(ÊÚëäüÿÿÿÿ8åÖ±éÄ/
+t	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(·¯Ç²şÿÿÿÿ
+Z	java:S106!"9Replace this use of System.out or System.err by a logger.(ÌÆëÂûÿÿÿÿ8ƒ¾ÒáÄ/
+O
+java:S1135F"2Complete the task associated to this TODO comment.(¿„×ö8ÃÔãÄ/
+V
+java:S2130Y"9Use "Integer.parseInt" for this string-to-int conversion.(ƒáïÓ8ê®ôéÄ/
+„
+java:S4165"bRemove this useless assignment; "name" already holds the assigned value along all execution paths.(É´“ıÿÿÿÿ8¾”ÈàÃ/
+›
+java:S1319"~The type of the "nextCellLocationPairBA" object should be an interface such as "Map" rather than the implementation "HashMap".(Œú±8ç’ˆìÄ/
+
+java:S1104"bMake nextCellLocationPairBA a static final constant or non-public and provide accessors if needed.(Œú±8ç’ˆìÄ/
