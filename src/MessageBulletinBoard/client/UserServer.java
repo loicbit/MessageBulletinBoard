@@ -52,41 +52,40 @@ public class UserServer implements UserServerInterface{
     }
 
     @Override
-    public String initContact(String name, String publicKey) throws RemoteException {
+    public String initContact(String nameContact, String publicKey) throws RemoteException {
         //todo: add asyncrhone encryption
-        this.publickeys.put(name, publicKey);
+        this.publickeys.put(nameContact, publicKey);
 
-        State newState = new State(name, publicKey);
-        this.firstStates.put(name, newState);
+        State newState = new State(nameContact, publicKey);
+        this.firstStates.put(nameContact, newState);
 
         return this.publicKey;
     }
 
     @Override
-    public String getFirstCell(String name, String cellToReceive) throws RemoteException {
+    public String getFirstCell(String nameContact, String cellToReceive) throws RemoteException {
         // Todo: replace tag and index generator to one place and change to method
-
-
-
         CellLocationPair newCellAB = generateNewCell();
         CellLocationPair newCellBA = convertToObject(cellToReceive);
 
-        /*
-        State stateContact = this.firstStates.get(name);
-        this.firstStates.remove(name);
-
-        stateContact.setCellLocationIndex(newCellAB.getIndex());
-        stateContact.setTag(newCellAB.getTag());
-
-        int stateHash = Objects.hashCode(stateContact);
-        firstStateHashes.put(name, stateHash);*/
-
 
         //todo remove cell save
-        this.firsCellsAB.put(name, newCellAB);
-        this.firsCellsBA.put(name, newCellBA);
+        this.firsCellsAB.put(nameContact, newCellAB);
+        this.firsCellsBA.put(nameContact, newCellBA);
 
         return  newCellAB.getIndex() + CellLocationPair.divider + newCellAB.getTag();
+    }
+
+    public boolean isConnected(String contactName){
+        return this.firsCellsAB.containsKey(contactName) && this.firsCellsBA.containsKey(contactName);
+    }
+
+    public CellLocationPair getFirstCellAB(String contactName){
+        return this.firsCellsAB.get(contactName);
+    }
+
+    public CellLocationPair getFirstCellBA(String contactName){
+        return this.firsCellsBA.get(contactName);
     }
 
     private CellLocationPair generateNewCell(){
@@ -108,6 +107,7 @@ public class UserServer implements UserServerInterface{
 
         return new CellLocationPair(index, tag);
     }
+
 
     //private CellLocationPair generateFirstCell
 }

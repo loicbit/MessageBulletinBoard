@@ -30,7 +30,6 @@ public class BulletinBoardServer implements BulletinBoardInterface{
             BulletinBoardServer obj = new BulletinBoardServer();
             BulletinBoardInterface stub = (BulletinBoardInterface) UnicastRemoteObject.exportObject(obj, 0);
 
-
             try{
                 registry = LocateRegistry.createRegistry(BulletinBoardInterface.REG_PORT);
             }catch(Exception e) {

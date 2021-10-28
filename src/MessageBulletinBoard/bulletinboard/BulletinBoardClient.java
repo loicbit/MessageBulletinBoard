@@ -15,13 +15,13 @@ public class BulletinBoardClient {
     private Registry registry;
     String name = null;
 
-    public HashMap<String, CellLocationPair> nextCellLocationPairAB = new HashMap<>();
-    public HashMap<String, CellLocationPair> nextCellLocationPairBA = new HashMap<>();
+    CellLocationPair nextCellLocationPairAB = null;
+    CellLocationPair nextCellLocationPairBA = null;
 
     private BulletinBoardInterface bulletinServerStub;
 
-    public BulletinBoardClient(String nameUser) throws RemoteException, NotBoundException {
-        this.name = name;
+    public BulletinBoardClient(String contact) throws RemoteException, NotBoundException {
+        //this.name = name;
 
         try{
             this.registry = LocateRegistry.createRegistry(BulletinBoardInterface.REG_PORT);
@@ -34,27 +34,24 @@ public class BulletinBoardClient {
 
     }
 
-    public void setNextCellLocationPairAB(String name, CellLocationPair next){
-        if(!this.nextCellLocationPairAB.containsValue(name)) nextCellLocationPairAB.replace(name, next);
-        else nextCellLocationPairAB.put(name, next);
+    public void setNextCellLocationPairAB(CellLocationPair next){
+        this.nextCellLocationPairAB = next;
 
     }
 
     public Boolean isNextCellLocationPairABSetted(String name){
-        return this.nextCellLocationPairAB.containsKey(name);
+         return nextCellLocationPairAB != null;
     }
 
-    public void setNextCellLocationPairBA(String name, CellLocationPair next){
-        if(!this.nextCellLocationPairBA.containsValue(name)) nextCellLocationPairBA.replace(name, next);
-        else nextCellLocationPairBA.put(name, next);
-
+    public void setNextCellLocationPairBA(CellLocationPair next){
+        this.nextCellLocationPairBA = next;
     }
 
-    public void sendMessage(String nameContact, String message) throws RemoteException {
-        CellLocationPair locationCurrentMessage = this.nextCellLocationPairAB.get(nameContact);
+    public void sendMessage(String message) throws RemoteException {
+        CellLocationPair locationCurrentMessage = this.nextCellLocationPairAB;
 
         if(locationCurrentMessage != null){
-            this.nextCellLocationPairAB.remove(nameContact);
+            this.nextCellLocationPairAB = null;
 
             //todo replace generator
             Random rand = new Random();
@@ -68,7 +65,7 @@ public class BulletinBoardClient {
             CellLocationPair nextLocationCell = new CellLocationPair(index, tag);
 
             //todo clear and only save the hash
-            this.nextCellLocationPairAB.put(nameContact, nextLocationCell);
+            this.nextCellLocationPairAB = nextLocationCell;
 
             String uMessage = message + BulletinBoardInterface.messageDiv + index + BulletinBoardInterface.messageDiv + tag;
             this.bulletinServerStub.add(locationCurrentMessage.getIndex(), uMessage, locationCurrentMessage.getTag());
@@ -76,22 +73,22 @@ public class BulletinBoardClient {
 
     }
 
-    public String getMessage(String nameContact) throws RemoteException{
-        if(this.nextCellLocationPairBA.containsKey(nameContact)){
-            CellLocationPair nextLocation = this.nextCellLocationPairBA.get(nameContact);
+    public String getMessage() throws RemoteException{
+        if(this.nextCellLocationPairBA != null){
+            CellLocationPair nextLocation = this.nextCellLocationPairBA;
 
             String message = this.bulletinServerStub.get(nextLocation.getIndex(), nextLocation.getTag());
 
             if(message != null){
-                this.nextCellLocationPairBA.remove(nameContact);
-                String splitted[] = message.split(CellLocationPair.divider);
+                this.nextCellLocationPairBA=null;
+                String splitted[] = message.split(BulletinBoardInterface.messageDiv);
                 String messageCell = splitted[0];
                 int nextIdx= Integer.valueOf(splitted[1]);
                 String nextTag = splitted[2];
 
                 CellLocationPair nextPair = new CellLocationPair(nextIdx, nextTag);
 
-                this.nextCellLocationPairBA.put(nameContact, nextPair);
+                this.nextCellLocationPairBA = nextPair;
 
                 return messageCell;
             }else return null;
@@ -100,5 +97,9 @@ public class BulletinBoardClient {
 
         }else return null;
 
+    }
+
+    public boolean isConnected(){
+        return this.nextCellLocationPairAB !=null && this.nextCellLocationPairBA != null;
     }
 }

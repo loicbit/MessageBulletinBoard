@@ -25,11 +25,12 @@ public class UserGui {
     private JButton buttonConnect;
 
     private UserServer userServer;
-    private UserClient userClient;
+    private HashMap<String, UserClient>  userClient = new HashMap();
 
-    private BulletinBoardClient boardClient;
+    //private BulletinBoardClient boardClient;
 
     private HashMap<String, String> conversation = new HashMap();
+    private String nameUser;
 
     public UserGui() {
         buttonConfirmNameUser.addActionListener(new ActionListener() {
@@ -41,21 +42,33 @@ public class UserGui {
         buttonConfirmContactName.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                addContact(textFieldNewContact.getText());
+                try {
+                    addContact(textFieldNewContact.getText());
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         });
         buttonConnect.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String currentContact = String.valueOf(comboBoxContacts.getSelectedItem());
-                connectContact(currentContact);
+                try {
+                    connectContact(currentContact);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         });
         buttonSendMessage.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String currentContact = String.valueOf(comboBoxContacts.getSelectedItem());
-                sendMessage(currentContact, textFieldMessage.getText());
+                try {
+                    sendMessage(currentContact, textFieldMessage.getText());
+                } catch (RemoteException ex) {
+                    ex.printStackTrace();
+                }
             }
         });
 
@@ -87,13 +100,10 @@ public class UserGui {
     private void setUser(String nameUser){
         this.textFieldNameUser.setEnabled(false);
         this.buttonConfirmNameUser.setEnabled(false);
-
+        this.nameUser = nameUser;
 
         try{
-            this.boardClient = new BulletinBoardClient(nameUser);
             this.userServer = new UserServer(nameUser);
-            this.userClient = new UserClient(nameUser);
-
         }catch(Exception ex){
             System.out.println(ex);
             //todo: print notification
@@ -101,63 +111,52 @@ public class UserGui {
         }
     }
 
-    private void addContact(String nameContact){
-        //todo : fix init with new if you can find them
+    private void addContact(String nameContact) throws Exception {
+        //todo : fix init with new, if you can't find them
         comboBoxContacts.addItem(nameContact);
 
         connectContact(nameContact);
     }
 
-    private void connectContact(String nameContact){
+    private void connectContact(String nameContact) throws Exception {
         //todo: connect new user
-        CellLocationPair nextReceiveLocation = null;
+        Boolean exchanged = false;
 
-        if(!this.boardClient.nextCellLocationPairAB.containsKey(nameContact)){
+        if(!this.userClient.containsKey(nameContact)){
+            this.userClient.put(nameContact, new UserClient(nameContact, this.nameUser));
+        }
+
+        if(!this.isConnected(nameContact)){
             try{
-                Boolean exchanged =  this.userClient.contactAsKeyExchange(nameContact);
-
-                if(exchanged){
-                    CellLocationPair cellAB =  this.userClient.getNextCellLocationPairAB(nameContact);
-                    CellLocationPair cellBA = this.userClient.getNextCellLocationPairBA(nameContact);
-
-                    this.boardClient.nextCellLocationPairAB.put(nameContact, cellAB);
-                    this.boardClient.nextCellLocationPairBA.put(nameContact, cellBA);
-                }
+                exchanged =  this.userClient.get(nameContact).contactAsKeyExchange(nameContact);
 
             }catch(RemoteException ex){
                 //todo: note contact not available to connect
             }
 
-            if(nextReceiveLocation != null){
+            if(exchanged){
                 this.buttonConfirmContactName.setEnabled(false);
             }
+
+        }else{
+            //todo message already connected
         }
     }
 
-    private void sendMessage(String name, String message){
+    private void sendMessage(String name, String message) throws RemoteException {
         //todo handle null client
-        if(this.boardClient != null){
-            if(!this.boardClient.isNextCellLocationPairABSetted(name)) {
-                //CellLocationPair nextLocation = this.userServer.getFirstCellPairAB(name);
-                //this.boardClient.setNextCellLocationPairAB(name, nextLocation);
-            }
-            try {
-                this.boardClient.sendMessage(name, message);
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-            catch(NullPointerException e){
-
-            }
+        if(this.userClient.containsKey(name) && this.userClient.get(name).isConnected()){
+            this.userClient.get(name).sendMessage(message);
+        }else{
+            //todo: print error message
         }
-
     }
 
     private void getMessage(String name) throws RemoteException {
         String currentConv = "";
 
-        if(this.boardClient != null){
-            String newMessage = this.boardClient.getMessage(name);
+        if(this.userClient.containsKey(name) && this.isConnected(name)){
+            String newMessage = this.userClient.get(name).getMessage();
             if(newMessage != null){
                 newMessage = '\n'+ newMessage;
 
@@ -169,7 +168,6 @@ public class UserGui {
                 }else{
                     this.conversation.put(name, newMessage);
                 }
-
                 updateConversation();
             }
         }
@@ -181,6 +179,28 @@ public class UserGui {
         String textToShow = this.conversation.get(currentContact);
 
         this.textAreaConversation.setText(textToShow);
+    }
+
+    private boolean isConnected(String contactName){
+        boolean statusClient =  this.userClient.get(contactName).isConnected();
+        boolean statusServer = this.userServer.isConnected(contactName);
+
+        if(!statusClient && statusServer){
+            CellLocationPair cellAB = this.userServer.getFirstCellAB(contactName);
+            CellLocationPair cellBA = this.userServer.getFirstCellBA(contactName);
+
+            this.userClient.get(contactName).setFirstCellPair(cellAB, cellBA);
+
+
+            if(cellAB != null && cellBA != null) return true;
+            else return false;
+
+        }else if(statusClient){
+            return true;
+        }
+
+        //todo check if contact is connected via client or server
+        return false;
     }
 
     public static void main(String[] args) {
