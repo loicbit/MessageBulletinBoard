@@ -9,6 +9,8 @@ import java.rmi.server.UnicastRemoteObject;
 import MessageBulletinBoard.bulletinboard.*;
 import MessageBulletinBoard.data.CellPair;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 
 public class BulletinBoardServer implements BulletinBoardInterface{
@@ -16,9 +18,11 @@ public class BulletinBoardServer implements BulletinBoardInterface{
     private int NUMBER_CELLS = 300;
 
     static Registry registry = null;
+    private MessageDigest md;
 
-    public BulletinBoardServer(){
+    public BulletinBoardServer() throws NoSuchAlgorithmException {
         this.cells = new BulletinCell[NUMBER_CELLS];
+        this.md = MessageDigest.getInstance(BulletinBoardInterface.algoMD);
 
         for(int i=0; i< NUMBER_CELLS; i++){
             this.cells[i] = new BulletinCell();
@@ -49,14 +53,10 @@ public class BulletinBoardServer implements BulletinBoardInterface{
         String message = null;
         CellPair toRemove = null;
 
-        //String hashB = new String(md.digest(b.getBytes()));
+        String hashB = new String(md.digest(b.getBytes()));
 
         for (CellPair pair : this.cells[i].getCellPairs()) {
-            /*if (pair.getTag().equals(hashB)) {
-                message = pair.getValue();
-                toRemove = pair;
-            }*/
-            if (pair.getTag().equals(b)) {
+            if (pair.getTag().equals(hashB)) {
                 message = pair.getValue();
                 toRemove = pair;
             }

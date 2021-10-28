@@ -8,6 +8,8 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -19,8 +21,9 @@ public class BulletinBoardClient {
     CellLocationPair nextCellLocationPairBA = null;
 
     private BulletinBoardInterface bulletinServerStub;
+    private MessageDigest md;
 
-    public BulletinBoardClient(String contact) throws RemoteException, NotBoundException {
+    public BulletinBoardClient(String contact) throws RemoteException, NotBoundException, NoSuchAlgorithmException {
         //this.name = name;
 
         try{
@@ -30,7 +33,8 @@ public class BulletinBoardClient {
         }
 
         this.bulletinServerStub = (BulletinBoardInterface) this.registry.lookup(BulletinBoardInterface.STUB_NAME);
-        System.out.println(this.bulletinServerStub);
+        this.md = MessageDigest.getInstance(BulletinBoardInterface.algoMD);
+        //System.out.println(this.bulletinServerStub);
 
     }
 
@@ -68,7 +72,11 @@ public class BulletinBoardClient {
             this.nextCellLocationPairAB = nextLocationCell;
 
             String uMessage = message + BulletinBoardInterface.messageDiv + index + BulletinBoardInterface.messageDiv + tag;
-            this.bulletinServerStub.add(locationCurrentMessage.getIndex(), uMessage, locationCurrentMessage.getTag());
+
+
+            String tagHash = new String(this.md.digest(locationCurrentMessage.getTag().getBytes()));
+
+            this.bulletinServerStub.add(locationCurrentMessage.getIndex(), uMessage, tagHash);
         } throw new NullPointerException("No cell to send");
 
     }

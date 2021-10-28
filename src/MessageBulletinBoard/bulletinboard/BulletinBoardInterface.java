@@ -16,6 +16,8 @@ public interface BulletinBoardInterface extends Remote{
     int securityParam = 8;
 
     String messageDiv = "DIVMES";
+
+    String algoMD = "SHA-256";
     // Get public values
     // String getPublicKey() throws RemoteException;
     //
