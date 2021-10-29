@@ -9,6 +9,7 @@ public interface BulletinBoardInterface extends Remote{
     int NUMBER_CELLS = 100;
 
     //todo replace the param:
+    //todo remove sec parameters from interface
     int SEC_PARAM = 8;
     int REG_PORT = 2001;
 
@@ -16,11 +17,9 @@ public interface BulletinBoardInterface extends Remote{
     int securityParam = 8;
 
     String messageDiv = "DIVMES";
+    String keyDIV = "DIVK";
 
     String algoMD = "SHA-256";
-    // Get public values
-    // String getPublicKey() throws RemoteException;
-    //
 
     //public void initReceiver(BulletinBoardInterface c)throws RemoteException;
 }

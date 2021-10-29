@@ -21,6 +21,8 @@ public class UserClient {
     private String nameUser;
 
     private boolean connected;
+    private boolean secured;
+
     private CellLocationPair nextCellLocationPairAB = null;
     private CellLocationPair nextCellLocationPairBA = null;
 
@@ -32,10 +34,12 @@ public class UserClient {
     private UserServerInterface contactServerStub;
 
     public UserClient(String contact, String user) throws Exception {
+        //todo: add state of communication (assynchrone securded connection,firstcell exchange, sec parameter, messages)
         this.publicKey = null;
         this.nameContact = contact;
         this.nameUser = user;
         this.connected = false;
+        this.secured = false;
 
         this.boardClient = new BulletinBoardClient(contact);
 
@@ -82,15 +86,29 @@ public class UserClient {
         else return null;
     }
 
-    public void sendMessage(String message) throws RemoteException {
+    public void sendPublicKeys() throws RemoteException {
+        this.boardClient.sendPublicKeys();
+    }
+
+    public boolean sendMessage(String message) throws RemoteException {
         if(isConnected()){
+            if(this.boardClient.isSecured()){
+
             this.boardClient.sendMessage(message);
+            }else{
+                sendPublicKeys();
+                //todo; error not secured to send
+                return false;
+            }
         }else {
             //todo print error message
+
         }
+        return false;
     }
 
     public String getMessage() throws RemoteException {
+        //todo check if it is not publickeys
         if(isConnected()){
             return this.boardClient.getMessage();
         }else {
@@ -115,7 +133,6 @@ public class UserClient {
         if(firstCellReceive != null) return true;
         else return false;
         //getSecurityParameters(firstCell);
-
     }
 
     public void setFirstCellPair(CellLocationPair cellAB, CellLocationPair cellBA){

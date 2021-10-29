@@ -5,10 +5,14 @@ import javax.crypto.spec.DESedeKeySpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
+import java.util.Base64;
 
 public class DiffieH {
     private KeyPairGenerator kPairGen;
@@ -18,21 +22,132 @@ public class DiffieH {
 
     private KeyFactory keyFac;
     private X509EncodedKeySpec x509KeySpec;
-    private PublicKey pubKey;
-    private SecretKeySpec aesKey;
+    //private PublicKey pubKey;
+    //private SecretKeySpec aesKey = null;
 
-    private String publicKeyString;
+    private String publicKeyString = null;
+
+
 
     private int counterDerivative;
 
-    private String ALGO = "AES/CBC/PKCS5Padding";
+    //private String ALGO = "AES/CBC/PKCS5Padding";
 
     private byte[] salt = null;
 
+    private PublicKey publickey;
+    KeyAgreement keyAgreement;
+    byte[] sharedsecret = null;
+
+    String ALGO = "AES";
+
     public DiffieH() throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-        this.generatePublicKey();
+        //this.generatePublicKey();
+        generatePublicKey();
     }
 
+
+
+
+    private void generatePublicKey() {
+        KeyPairGenerator kpg = null;
+        try {
+            kpg = KeyPairGenerator.getInstance("EC");
+            kpg.initialize(128);
+            KeyPair kp = kpg.generateKeyPair();
+            this.publickey = kp.getPublic();
+            this.keyAgreement = KeyAgreement.getInstance("ECDH");
+            this.keyAgreement.init(kp.getPrivate());
+
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void generateSecretKey(String publicKeyString) {
+        try {
+            byte[] byte_pubkey_other = Base64.getDecoder().decode(publicKeyString);
+            KeyFactory factory = KeyFactory.getInstance("EC");
+            PublicKey publickeyOther = factory.generatePublic(new X509EncodedKeySpec(byte_pubkey_other));
+
+            keyAgreement.doPhase(publickeyOther, true);
+            this.sharedsecret = keyAgreement.generateSecret();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String encrypt(String msg) {
+        //byte[] decodedKey = Base64.getDecoder().decode(msg);
+
+        try {
+            Cipher cipher = Cipher.getInstance("AES");
+            // rebuild key using SecretKeySpec
+            SecretKey originalKey = new SecretKeySpec(Arrays.copyOf(this.sharedsecret, 16), "AES");
+            cipher.init(Cipher.ENCRYPT_MODE, originalKey);
+            byte[] cipherText = cipher.doFinal(msg.getBytes("UTF-8"));
+            return Base64.getEncoder().encodeToString(cipherText);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Error occured while encrypting data", e);
+        }
+        /*try {
+            Key key = generateKey();
+            Cipher c = Cipher.getInstance(ALGO);
+            c.init(Cipher.ENCRYPT_MODE, key);
+            byte[] encVal = c.doFinal(msg.getBytes("UTF-8"));
+            return Base64.getEncoder().encodeToString(encVal);
+        } catch (BadPaddingException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return msg;*/
+    }
+
+    public String decrypt(String encryptedData) {
+        /*try {
+            Key key = generateKey();
+            Cipher c = Cipher.getInstance(ALGO);
+            c.init(Cipher.DECRYPT_MODE, key);
+            //byte[] decordedValue = new BASE64Decoder().decodeBuffer(encryptedData);
+            byte[] decordedValue = encryptedData.getBytes("UTF-8");
+            byte[] decValue = c.doFinal(decordedValue);
+            return Base64.getEncoder().encodeToString(decValue);
+        } catch (BadPaddingException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return encryptedData;*/
+
+        try {
+            Cipher cipher = Cipher.getInstance("AES");
+            // rebuild key using SecretKeySpec
+            SecretKey originalKey = new SecretKeySpec(Arrays.copyOf(this.sharedsecret, 16), "AES");
+            cipher.init(Cipher.DECRYPT_MODE, originalKey);
+            byte[] cipherText = cipher.doFinal(Base64.getDecoder().decode(encryptedData));
+            return new String(cipherText);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Error occured while decrypting data", e);
+        }
+    }
+
+    public String getPubKey() {
+        byte[] byte_pubkey = this.publickey.getEncoded();
+        return Base64.getEncoder().encodeToString(byte_pubkey);
+    }
+
+    protected Key generateKey() {
+        return new SecretKeySpec(sharedsecret, ALGO);
+    }
+
+    public boolean isSecurd(){
+        return this.publickey != null && this.sharedsecret != null;
+    }
+
+    /*
     public String getPubKey(){
         return publicKeyString;
     }
@@ -43,12 +158,12 @@ public class DiffieH {
         KeyPair aliceKpair = kPairGen.generateKeyPair();
 
         //init keyagreement
-        keyAgree = KeyAgreement.getInstance("DH");
-        keyAgree.init(aliceKpair.getPrivate());
+        this.keyAgree = KeyAgreement.getInstance("DH");
+        this.keyAgree.init(aliceKpair.getPrivate());
 
         byte[] alicePubKeyEnc = aliceKpair.getPublic().getEncoded();
 
-        publicKeyString = new String(alicePubKeyEnc);
+        this.publicKeyString = new String(alicePubKeyEnc);
 
         this.keyFac = KeyFactory.getInstance("DH");
         this.x509KeySpec = new X509EncodedKeySpec(alicePubKeyEnc);
@@ -132,5 +247,9 @@ public class DiffieH {
             e.printStackTrace();
         }
     }
+
+    public boolean isSecurd(){
+        return this.pubKey != null && this.aesKey != null;
+    }*/
 
 }

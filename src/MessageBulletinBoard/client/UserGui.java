@@ -95,6 +95,8 @@ public class UserGui {
                 updateConversation();
             }
         });
+
+        this.textAreaConversation.setBorder(new JTextField().getBorder());
     }
 
     private void setUser(String nameUser){
@@ -129,6 +131,7 @@ public class UserGui {
         if(!this.isConnected(nameContact)){
             try{
                 exchanged =  this.userClient.get(nameContact).contactAsKeyExchange(nameContact);
+                this.userClient.get(nameContact).sendPublicKeys();
 
             }catch(RemoteException ex){
                 //todo: note contact not available to connect
@@ -146,7 +149,11 @@ public class UserGui {
     private void sendMessage(String name, String message) throws RemoteException {
         //todo handle null client
         if(this.userClient.containsKey(name) && this.userClient.get(name).isConnected()){
-            this.userClient.get(name).sendMessage(message);
+            boolean sent=  this.userClient.get(name).sendMessage(message);
+
+            if(!sent){
+                //todo: print error
+            }
         }else{
             //todo: print error message
         }
@@ -210,6 +217,8 @@ public class UserGui {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
+
+
 
     }
 }

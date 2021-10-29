@@ -1,6 +1,6 @@
 package MessageBulletinBoard.bulletinboard;
 
-import MessageBulletinBoard.client.UserServerInterface;
+import MessageBulletinBoard.crypto.DiffieH;
 import MessageBulletinBoard.data.CellLocationPair;
 
 import java.nio.charset.Charset;
@@ -8,9 +8,10 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Random;
 
 public class BulletinBoardClient {
@@ -23,8 +24,14 @@ public class BulletinBoardClient {
     private BulletinBoardInterface bulletinServerStub;
     private MessageDigest md;
 
-    public BulletinBoardClient(String contact) throws RemoteException, NotBoundException, NoSuchAlgorithmException {
-        //this.name = name;
+    private DiffieH diffiehAB;
+    private DiffieH diffiehBA;
+
+    private boolean isEncrypted = false;
+
+    public BulletinBoardClient(String contact) throws RemoteException, NotBoundException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
+        this.diffiehAB = new DiffieH();
+        this.diffiehBA = new DiffieH();
 
         try{
             this.registry = LocateRegistry.createRegistry(BulletinBoardInterface.REG_PORT);
@@ -43,10 +50,6 @@ public class BulletinBoardClient {
 
     }
 
-    public Boolean isNextCellLocationPairABSetted(String name){
-         return nextCellLocationPairAB != null;
-    }
-
     public void setNextCellLocationPairBA(CellLocationPair next){
         this.nextCellLocationPairBA = next;
     }
@@ -55,59 +58,103 @@ public class BulletinBoardClient {
         CellLocationPair locationCurrentMessage = this.nextCellLocationPairAB;
 
         if(locationCurrentMessage != null){
-            this.nextCellLocationPairAB = null;
-
-            //todo replace generator
-            Random rand = new Random();
-            int index = rand.nextInt(BulletinBoardInterface.NUMBER_CELLS *100)%BulletinBoardInterface.NUMBER_CELLS;
-
-
-            byte[] array = new byte[BulletinBoardInterface.securityParam];
-            new Random().nextBytes(array);
-            String tag = new String(array, Charset.forName("ASCII"));
-
-            CellLocationPair nextLocationCell = new CellLocationPair(index, tag);
-
-            //todo clear and only save the hash
-            this.nextCellLocationPairAB = nextLocationCell;
-
-            String uMessage = message + BulletinBoardInterface.messageDiv + index + BulletinBoardInterface.messageDiv + tag;
-
-
-            String tagHash = new String(this.md.digest(locationCurrentMessage.getTag().getBytes()));
-
-            this.bulletinServerStub.add(locationCurrentMessage.getIndex(), uMessage, tagHash);
-        } throw new NullPointerException("No cell to send");
-
+            String[] messageTagPair = prepareMessage(message, locationCurrentMessage);
+            this.bulletinServerStub.add(locationCurrentMessage.getIndex(), messageTagPair[0], messageTagPair[1]);
+        }else{
+            throw new NullPointerException("First cell not yet initialised");
+        }
     }
 
-    public String getMessage() throws RemoteException{
-        if(this.nextCellLocationPairBA != null){
+    public void sendPublicKeys() throws RemoteException{
+        CellLocationPair locationCurrentMessage = this.nextCellLocationPairAB;
+        String publicKeyAB = this.diffiehAB.getPubKey();
+        String publicKeyBA = this.diffiehBA.getPubKey();
+
+        if(locationCurrentMessage != null){
+            String message = publicKeyAB + BulletinBoardInterface.keyDIV + publicKeyBA;
+            String[] messageTagPair = prepareMessage(message, locationCurrentMessage);
+            this.bulletinServerStub.add(locationCurrentMessage.getIndex(), messageTagPair[0], messageTagPair[1]);
+        } else{
+            throw new NullPointerException("First cell not yet initialised");
+        }
+    }
+
+    public void setPublicKeysContact(String publicKeyContactAB, String publicKeyContactBA){
+        this.diffiehAB.generateSecretKey(publicKeyContactAB);
+        this.diffiehBA.generateSecretKey(publicKeyContactBA);
+    }
+
+    public String getMessage() throws RemoteException {
+        if (this.nextCellLocationPairBA != null) {
             CellLocationPair nextLocation = this.nextCellLocationPairBA;
 
-            String message = this.bulletinServerStub.get(nextLocation.getIndex(), nextLocation.getTag());
+            String uMessage = this.bulletinServerStub.get(nextLocation.getIndex(), nextLocation.getTag());
 
-            if(message != null){
-                this.nextCellLocationPairBA=null;
-                String splitted[] = message.split(BulletinBoardInterface.messageDiv);
-                String messageCell = splitted[0];
-                int nextIdx= Integer.valueOf(splitted[1]);
-                String nextTag = splitted[2];
+            if(uMessage != null){
+                String message =  splitUMessage(uMessage);
+                if(message.contains(BulletinBoardInterface.keyDIV)){
+                    String[] split = message.split(BulletinBoardInterface.keyDIV);
+                    setPublicKeysContact(split[1], split[0]);
 
-                CellLocationPair nextPair = new CellLocationPair(nextIdx, nextTag);
+                    sendPublicKeys();
 
-                this.nextCellLocationPairBA = nextPair;
-
-                return messageCell;
-            }else return null;
-
-
-
-        }else return null;
+                }else{
+                    return message;
+                }
+            } else return null;
+        }
+        return null;
 
     }
 
     public boolean isConnected(){
         return this.nextCellLocationPairAB !=null && this.nextCellLocationPairBA != null;
+    }
+
+    public boolean isEncrypted() { return this.isEncrypted; }
+
+    private String[] prepareMessage(String message, CellLocationPair locationCurrentMessage){
+        this.nextCellLocationPairAB = null;
+        String [] result = new String[2];
+
+        //todo replace generator
+        Random rand = new Random();
+        int index = rand.nextInt(BulletinBoardInterface.NUMBER_CELLS *100)%BulletinBoardInterface.NUMBER_CELLS;
+
+
+        byte[] array = new byte[BulletinBoardInterface.securityParam];
+        new Random().nextBytes(array);
+        String tag = new String(array, Charset.forName("ASCII"));
+
+        CellLocationPair nextLocationCell = new CellLocationPair(index, tag);
+
+        //todo clear and only save the hash
+        this.nextCellLocationPairAB = nextLocationCell;
+
+        // uMessage
+        result[0] = message + BulletinBoardInterface.messageDiv + index + BulletinBoardInterface.messageDiv + tag;
+
+        // tagHash
+        result[1] = new String(this.md.digest(locationCurrentMessage.getTag().getBytes()));
+
+        return result;
+    }
+
+    private String splitUMessage(String message){
+        this.nextCellLocationPairBA = null;
+        String splitted[] = message.split(BulletinBoardInterface.messageDiv);
+        String messageCell = splitted[0];
+        int nextIdx = Integer.valueOf(splitted[1]);
+        String nextTag = splitted[2];
+
+        CellLocationPair nextPair = new CellLocationPair(nextIdx, nextTag);
+
+        this.nextCellLocationPairBA = nextPair;
+
+        return messageCell;
+    }
+
+    public boolean isSecured(){
+        return this.diffiehAB.isSecurd() && this.diffiehBA.isSecurd();
     }
 }
