@@ -93,8 +93,7 @@ public class UserClient {
     public boolean sendMessage(String message) throws RemoteException {
         if(isConnected()){
             if(this.boardClient.isSecured()){
-
-            this.boardClient.sendMessage(message);
+                this.boardClient.sendMessage(message);
             }else{
                 sendPublicKeys();
                 //todo; error not secured to send

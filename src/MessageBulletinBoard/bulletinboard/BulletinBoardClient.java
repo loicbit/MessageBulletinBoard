@@ -28,6 +28,7 @@ public class BulletinBoardClient {
     private DiffieH diffiehBA;
 
     private boolean isEncrypted = false;
+    private boolean publicKeysSend = false;
 
     public BulletinBoardClient(String contact) throws RemoteException, NotBoundException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
         this.diffiehAB = new DiffieH();
@@ -55,11 +56,16 @@ public class BulletinBoardClient {
     }
 
     public void sendMessage(String message) throws RemoteException {
+        // In case publickeys not yet send, send them
+        if(!this.publicKeysSend) sendPublicKeys();
+
         CellLocationPair locationCurrentMessage = this.nextCellLocationPairAB;
 
         if(locationCurrentMessage != null){
             String[] messageTagPair = prepareMessage(message, locationCurrentMessage);
-            this.bulletinServerStub.add(locationCurrentMessage.getIndex(), messageTagPair[0], messageTagPair[1]);
+            String encryptedMessage = this.diffiehAB.encrypt(messageTagPair[0]);
+
+            this.bulletinServerStub.add(locationCurrentMessage.getIndex(), encryptedMessage, messageTagPair[1]);
         }else{
             throw new NullPointerException("First cell not yet initialised");
         }
@@ -77,6 +83,8 @@ public class BulletinBoardClient {
         } else{
             throw new NullPointerException("First cell not yet initialised");
         }
+
+        this.publicKeysSend = true;
     }
 
     public void setPublicKeysContact(String publicKeyContactAB, String publicKeyContactBA){
@@ -91,20 +99,21 @@ public class BulletinBoardClient {
             String uMessage = this.bulletinServerStub.get(nextLocation.getIndex(), nextLocation.getTag());
 
             if(uMessage != null){
-                String message =  splitUMessage(uMessage);
-                if(message.contains(BulletinBoardInterface.keyDIV)){
+                if(!isSecured()){
+                    String message =  splitUMessage(uMessage);
                     String[] split = message.split(BulletinBoardInterface.keyDIV);
                     setPublicKeysContact(split[1], split[0]);
 
-                    sendPublicKeys();
+                    // In case publickeys not yet send, send them
+                    if(!this.publicKeysSend) sendPublicKeys();
 
                 }else{
-                    return message;
+                    String message =  this.diffiehBA.decrypt(uMessage);
+                    return splitUMessage(message);
                 }
             } else return null;
         }
         return null;
-
     }
 
     public boolean isConnected(){
