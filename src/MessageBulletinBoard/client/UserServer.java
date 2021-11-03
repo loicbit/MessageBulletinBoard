@@ -11,6 +11,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.Random;
@@ -113,7 +114,7 @@ public class UserServer implements UserServerInterface{
     }
 
     private CellLocationPair generateNewCell(){
-        Random rand = new Random();
+        Random rand = new SecureRandom();
         int index = rand.nextInt(BulletinBoardInterface.NUMBER_CELLS *100)%BulletinBoardInterface.NUMBER_CELLS;
 
         byte[] array = new byte[BulletinBoardInterface.securityParam];
