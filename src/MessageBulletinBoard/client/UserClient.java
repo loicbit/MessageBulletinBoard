@@ -2,12 +2,15 @@ package MessageBulletinBoard.client;
 
 import MessageBulletinBoard.bulletinboard.BulletinBoardClient;
 import MessageBulletinBoard.bulletinboard.BulletinBoardInterface;
+import MessageBulletinBoard.crypto.AssymEncrypt;
 import MessageBulletinBoard.data.CellLocationPair;
+import org.apache.commons.lang3.SerializationUtils;
 
 import java.nio.charset.Charset;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.security.Key;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -29,6 +32,9 @@ public class UserClient {
     private String secretKey;
     private String publicKey;
 
+    private Key publicKeyOther;
+    AssymEncrypt assymEncrypt;
+
     private BulletinBoardClient boardClient;
 
     private UserServerInterface contactServerStub;
@@ -41,6 +47,10 @@ public class UserClient {
         this.connected = false;
         this.secured = false;
 
+        this.assymEncrypt = new AssymEncrypt();
+
+
+
         this.boardClient = new BulletinBoardClient(contact);
 
         try{
@@ -50,7 +60,6 @@ public class UserClient {
         }
 
         try{
-            //todo: generate publickey
             this.registry = LocateRegistry.getRegistry(UserServerInterface.REG_PORT);
 
         }catch(Exception e){
@@ -69,13 +78,23 @@ public class UserClient {
         this.secretKey = secretKey;
     }
 
+    public void setPublicKeyContact(Key publicKeyOther){
+        this.publicKeyOther = publicKeyOther;
+    }
 
-    public Boolean contactAsKeyExchange(String nameContact) throws RemoteException{
+
+    public Boolean symmetricKeyExchange(String nameContact) throws Exception {
         //todo prepare first cell for other
         //      setup secure communication before start
         //      prevent own name
         if(!this.connected){
-            String publicKey =  this.contactServerStub.initContact(this.nameUser, this.publicKey);
+            //byte[] publicKeySerialized = SerializationUtils.serialize(this.publicKey);
+
+            // Setup assymetric communication between the two contacts before exchanging public keys for symmetric
+
+            byte[] publicKeyOtherSerialized =  this.contactServerStub.initContact(this.nameUser, this.assymEncrypt.getPublicKeySer());
+            this.publicKeyOther = SerializationUtils.deserialize(publicKeyOtherSerialized);
+
             Boolean firstCellReceived = firstCellExchange(this.nameUser);
 
             this.connected = firstCellReceived;
@@ -90,7 +109,7 @@ public class UserClient {
         this.boardClient.sendPublicKeys();
     }
 
-    public boolean sendMessage(String message) throws RemoteException {
+    public boolean sendMessageBoard(String message) throws RemoteException {
         if(isConnected()){
             if(this.boardClient.isSecured()){
                 this.boardClient.sendMessage(message);
@@ -106,7 +125,7 @@ public class UserClient {
         return false;
     }
 
-    public String getMessage() throws RemoteException {
+    public String getMessageBoard() throws RemoteException {
         //todo check if it is not publickeys
         if(isConnected()){
             return this.boardClient.getMessage();
@@ -116,17 +135,19 @@ public class UserClient {
         }
     }
 
-    public boolean firstCellExchange(String nameContact) throws RemoteException{
+    public boolean firstCellExchange(String nameContact) throws Exception {
         CellLocationPair firstCellSend = generateNewCell();
         this.boardClient.setNextCellLocationPairAB(firstCellSend);
 
-        String firstCellGet = this.contactServerStub.getFirstCell(nameContact, firstCellSend.toString());
-        String splitted[] = firstCellGet.split(CellLocationPair.divider);
+        //byte[] cellSerialized = SerializationUtils.serialize(firstCellSend);
+        String nameAndCell = nameContact + UserServerInterface.DIV_CELL+ firstCellSend.toString();
+        byte[] nameAndCellEncrypted = this.assymEncrypt.do_RSAEncryption(nameAndCell, this.publicKeyOther);
 
-        int index = Integer.valueOf(splitted[0]);
-        String tag = splitted[1];
+        byte[] firstCellGetEncrypted = this.contactServerStub.getFirstCell(nameAndCellEncrypted);
+        String firstCellGet = this.assymEncrypt.do_RSADecryption(firstCellGetEncrypted);
 
-        CellLocationPair firstCellReceive = new CellLocationPair(index, tag);
+
+        CellLocationPair firstCellReceive = new CellLocationPair(firstCellGet);
         this.boardClient.setNextCellLocationPairBA(firstCellReceive);
 
         if(firstCellReceive != null) return true;

@@ -1,5 +1,7 @@
 package MessageBulletinBoard.crypto;
 
+import org.apache.commons.lang3.SerializationUtils;
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -10,7 +12,7 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 
 public class testCrypto {
-    public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+    public static void main(String[] args) throws Exception {
         DiffieH diffieA = new DiffieH();
         DiffieH diffieB = new DiffieH();
 
@@ -24,11 +26,20 @@ public class testCrypto {
         diffieA.generateSecretKey(pubkeyB);
         diffieB.generateSecretKey(pubkeyA);
 
-        String result = diffieA.encrypt("testjejjj");
-        //byte[] result = diffieA.encrypt("testjejjj".getBytes());
-
+        String result = diffieA.encrypt("test_1");
         System.out.println(diffieB.decrypt(result));
-        //System.out.println(new String(diffieB.decrypt(result)));
+
+        String result2 = diffieA.encrypt("test_2");
+        System.out.println(diffieB.decrypt(result2));
+
+
+        String plainText = "Test_RSA";
+
+        AssymEncrypt alice = new AssymEncrypt();
+        AssymEncrypt bob = new AssymEncrypt();
+
+        byte[] data = SerializationUtils.serialize(result);
+        String yourObject = SerializationUtils.deserialize(data);
 
     }
 }

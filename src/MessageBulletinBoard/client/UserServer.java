@@ -1,8 +1,10 @@
 package MessageBulletinBoard.client;
 
 import MessageBulletinBoard.bulletinboard.BulletinBoardInterface;
+import MessageBulletinBoard.crypto.AssymEncrypt;
 import MessageBulletinBoard.data.CellLocationPair;
 import MessageBulletinBoard.data.State;
+import org.apache.commons.lang3.SerializationUtils;
 
 import java.nio.charset.Charset;
 import java.rmi.RemoteException;
@@ -13,12 +15,16 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.Random;
 
+import java.security.Key;
+
 public class UserServer implements UserServerInterface{
     private String firstStateHash = null;
     private int securityParam = 8;
     private String publicKey = null;
 
-    private HashMap<String, String> publickeys= new HashMap<>();
+    //private HashMap<String, AssymEncrypt> assymEncrypt= new HashMap<>();
+    private HashMap<String, Key> publickeys= new HashMap<>();
+    private AssymEncrypt assymEncrypt;
 
     private HashMap<String, State> firstStates= new HashMap<>();
     private HashMap<String, Integer> firstStateHashes= new HashMap<>();
@@ -29,6 +35,8 @@ public class UserServer implements UserServerInterface{
 
     public UserServer(String nameUser) throws Exception{
         //todo: generate publickey
+        this.assymEncrypt = new AssymEncrypt();
+
         try {
             UserServerInterface stub = (UserServerInterface) UnicastRemoteObject.exportObject(this, 0);
 
@@ -52,28 +60,44 @@ public class UserServer implements UserServerInterface{
     }
 
     @Override
-    public String initContact(String nameContact, String publicKey) throws RemoteException {
+    public byte[] initContact(String nameContact, byte[] publicKeyStr) throws RemoteException {
         //todo: add asyncrhone encryption
-        this.publickeys.put(nameContact, publicKey);
+        Key publicKeyOther = SerializationUtils.deserialize(publicKeyStr);
+        this.publickeys.put(nameContact, publicKeyOther);
 
-        State newState = new State(nameContact, publicKey);
-        this.firstStates.put(nameContact, newState);
+        //State newState = new State(nameContact, publicKey);
+        //this.firstStates.put(nameContact, newState);
 
-        return this.publicKey;
+        return this.assymEncrypt.getPublicKeySer();
     }
 
     @Override
-    public String getFirstCell(String nameContact, String cellToReceive) throws RemoteException {
+    public byte[] getFirstCell(byte[] firstCellBA) throws Exception {
+
+
+        String decrypted = this.assymEncrypt.do_RSADecryption(firstCellBA);
+
+        String[] response = decrypted.split(UserServerInterface.DIV_CELL);
+        String nameContact = response[0];
+
+
+        CellLocationPair newCellBA = convertToObject(response[1]);
+
         // Todo: replace tag and index generator to one place and change to method
         CellLocationPair newCellAB = generateNewCell();
-        CellLocationPair newCellBA = convertToObject(cellToReceive);
+        //CellLocationPair newCellBA = convertToObject(cellToReceive);
 
 
         //todo remove cell save
         this.firsCellsAB.put(nameContact, newCellAB);
         this.firsCellsBA.put(nameContact, newCellBA);
 
-        return  newCellAB.getIndex() + CellLocationPair.divider + newCellAB.getTag();
+
+        //Send the other the first cell to look for
+        String newCellABStr = newCellAB.toString();
+        byte[] encrypted = this.assymEncrypt.do_RSAEncryption(newCellABStr, this.publickeys.get(nameContact));
+
+        return encrypted;
     }
 
     public boolean isConnected(String contactName){
@@ -99,6 +123,11 @@ public class UserServer implements UserServerInterface{
         return new CellLocationPair(index, tag);
     }
 
+    public Key getPublicKeyContact(String contactName){
+        return this.publickeys.get(contactName);
+    }
+
+    //todo: remove
     private CellLocationPair convertToObject(String pairString){
         String splitted[] = pairString.split(CellLocationPair.divider);
 

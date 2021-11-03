@@ -1,12 +1,13 @@
 package MessageBulletinBoard.data;
 
+import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class CellLocationPair {
+public class CellLocationPair implements Serializable {
     private int index;
     private String tag;
-    public static String divider = "DIVCELLP";
+    public static String divider = "DIVPCELL";
 
     public String getTagHash() {
         return tagHash;
@@ -47,6 +48,14 @@ public class CellLocationPair {
         }
 
     }
+
+    public CellLocationPair(String pairString){
+        String splitted[] = pairString.split(CellLocationPair.divider);
+
+        this.index = Integer.valueOf(splitted[0]);
+        this.tag = splitted[1];
+    }
+
 
     @Override
     public String toString() {

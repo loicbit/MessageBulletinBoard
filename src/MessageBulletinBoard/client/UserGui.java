@@ -1,12 +1,12 @@
 package MessageBulletinBoard.client;
 
-import MessageBulletinBoard.bulletinboard.BulletinBoardClient;
 import MessageBulletinBoard.data.CellLocationPair;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
+import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Timer;
@@ -26,6 +26,9 @@ public class UserGui {
 
     private UserServer userServer;
     private HashMap<String, UserClient>  userClient = new HashMap();
+
+
+    //AssymEncrypt assymEncrypt = new AssymEncrypt();
 
     //private BulletinBoardClient boardClient;
 
@@ -130,7 +133,10 @@ public class UserGui {
 
         if(!this.isConnected(nameContact)){
             try{
-                exchanged =  this.userClient.get(nameContact).contactAsKeyExchange(nameContact);
+                exchanged =  this.userClient.get(nameContact).symmetricKeyExchange(nameContact);
+                Key publicKeyOther = this.userServer.getPublicKeyContact(nameContact);
+                this.userClient.get(nameContact).setPublicKeyContact(publicKeyOther);
+
                 this.userClient.get(nameContact).sendPublicKeys();
 
             }catch(RemoteException ex){
@@ -149,7 +155,7 @@ public class UserGui {
     private void sendMessage(String name, String message) throws RemoteException {
         //todo handle null client
         if(this.userClient.containsKey(name) && this.userClient.get(name).isConnected()){
-            boolean sent=  this.userClient.get(name).sendMessage(message);
+            boolean sent=  this.userClient.get(name).sendMessageBoard(message);
 
             if(!sent){
                 //todo: print error
@@ -163,7 +169,7 @@ public class UserGui {
         String currentConv = "";
 
         if(this.userClient.containsKey(name) && this.isConnected(name)){
-            String newMessage = this.userClient.get(name).getMessage();
+            String newMessage = this.userClient.get(name).getMessageBoard();
             if(newMessage != null){
                 newMessage = '\n'+ newMessage;
 
