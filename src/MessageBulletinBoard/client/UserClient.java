@@ -4,6 +4,7 @@ import MessageBulletinBoard.bulletinboard.BulletinBoardClient;
 import MessageBulletinBoard.bulletinboard.BulletinBoardInterface;
 import MessageBulletinBoard.crypto.AssymEncrypt;
 import MessageBulletinBoard.data.CellLocationPair;
+import MessageBulletinBoard.tokenserver.TokenServerInterface;
 import org.apache.commons.lang3.SerializationUtils;
 
 import java.nio.charset.Charset;
@@ -39,6 +40,7 @@ public class UserClient {
     private BulletinBoardClient boardClient;
 
     private UserServerInterface contactServerStub;
+    private TokenServerInterface tokenServerStub;
 
     public UserClient(String contact, String user) throws Exception {
         //todo: add state of communication (assynchrone securded connection,firstcell exchange, sec parameter, messages)
@@ -49,8 +51,6 @@ public class UserClient {
         this.secured = false;
 
         this.assymEncrypt = new AssymEncrypt();
-
-
 
         this.boardClient = new BulletinBoardClient(contact);
 
@@ -96,11 +96,9 @@ public class UserClient {
             byte[] publicKeyOtherSerialized =  this.contactServerStub.initContact(this.nameUser, this.assymEncrypt.getPublicKeySer());
             this.publicKeyOther = SerializationUtils.deserialize(publicKeyOtherSerialized);
 
-            Boolean firstCellReceived = firstCellExchange(this.nameUser);
+            this.connected = firstCellExchange(this.nameUser);
 
-            this.connected = firstCellReceived;
-
-            return firstCellReceived;
+            return this.connected;
         }
 
         else return null;
@@ -147,13 +145,11 @@ public class UserClient {
         byte[] firstCellGetEncrypted = this.contactServerStub.getFirstCell(nameAndCellEncrypted);
         String firstCellGet = this.assymEncrypt.do_RSADecryption(firstCellGetEncrypted);
 
-
         CellLocationPair firstCellReceive = new CellLocationPair(firstCellGet);
         this.boardClient.setNextCellLocationPairBA(firstCellReceive);
 
         if(firstCellReceive != null) return true;
         else return false;
-        //getSecurityParameters(firstCell);
     }
 
     public void setFirstCellPair(CellLocationPair cellAB, CellLocationPair cellBA){

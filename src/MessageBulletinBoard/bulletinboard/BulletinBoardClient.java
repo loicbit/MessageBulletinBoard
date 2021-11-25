@@ -2,6 +2,7 @@ package MessageBulletinBoard.bulletinboard;
 
 import MessageBulletinBoard.crypto.DiffieH;
 import MessageBulletinBoard.data.CellLocationPair;
+import MessageBulletinBoard.tokenserver.TokenServerInterface;
 
 import java.nio.charset.Charset;
 import java.rmi.NotBoundException;
@@ -12,16 +13,22 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Random;
 
 public class BulletinBoardClient {
+    //todo: encrypt communication
+
     private Registry registry;
-    String name = null;
+    String nameUser = null;
 
     CellLocationPair nextCellLocationPairAB = null;
     CellLocationPair nextCellLocationPairBA = null;
 
     private BulletinBoardInterface bulletinServerStub;
+
+
     private MessageDigest md;
 
     private DiffieH diffiehAB;
@@ -29,6 +36,10 @@ public class BulletinBoardClient {
 
     private boolean isEncrypted = false;
     private boolean publicKeysSend = false;
+
+    private LinkedList<String> tokens = new LinkedList<>();
+
+    // todo generate hash of the state
 
     public BulletinBoardClient(String contact) throws RemoteException, NotBoundException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
         this.diffiehAB = new DiffieH();
@@ -41,6 +52,9 @@ public class BulletinBoardClient {
         }
 
         this.bulletinServerStub = (BulletinBoardInterface) this.registry.lookup(BulletinBoardInterface.STUB_NAME);
+
+
+
         this.md = MessageDigest.getInstance(BulletinBoardInterface.algoMD);
         //System.out.println(this.bulletinServerStub);
 
@@ -62,24 +76,32 @@ public class BulletinBoardClient {
         CellLocationPair locationCurrentMessage = this.nextCellLocationPairAB;
 
         if(locationCurrentMessage != null){
+            //String token = getToken();
+            //todo get token
+            String token = "dummy";
             String[] messageTagPair = prepareMessage(message, locationCurrentMessage);
             String encryptedMessage = this.diffiehAB.encrypt(messageTagPair[0]);
 
-            this.bulletinServerStub.add(locationCurrentMessage.getIndex(), encryptedMessage, messageTagPair[1]);
+            this.bulletinServerStub.add(locationCurrentMessage.getIndex(), encryptedMessage, messageTagPair[1], token);
         }else{
             throw new NullPointerException("First cell not yet initialised");
         }
     }
 
+    //todo change name
     public void sendPublicKeys() throws RemoteException{
         CellLocationPair locationCurrentMessage = this.nextCellLocationPairAB;
         String publicKeyAB = this.diffiehAB.getPubKey();
         String publicKeyBA = this.diffiehBA.getPubKey();
 
         if(locationCurrentMessage != null){
+            //String token = getToken();
+            String token = "dummy";
             String message = publicKeyAB + BulletinBoardInterface.keyDIV + publicKeyBA;
             String[] messageTagPair = prepareMessage(message, locationCurrentMessage);
-            this.bulletinServerStub.add(locationCurrentMessage.getIndex(), messageTagPair[0], messageTagPair[1]);
+
+
+            this.bulletinServerStub.add(locationCurrentMessage.getIndex(), messageTagPair[0], messageTagPair[1], token);
         } else{
             throw new NullPointerException("First cell not yet initialised");
         }
@@ -166,4 +188,6 @@ public class BulletinBoardClient {
     public boolean isSecured(){
         return this.diffiehAB.isSecurd() && this.diffiehBA.isSecurd();
     }
+
+
 }

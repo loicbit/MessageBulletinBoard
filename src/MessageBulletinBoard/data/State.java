@@ -8,14 +8,13 @@ public class State implements Serializable {
     private int cellLocationIndex = -1;
     private String tag = null;
 
-    //todo: maybe remove publicKey from constructor
-    public State(String name, String publicKey){
+    public State(String name, CellLocationPair cellLocationPairAB, CellLocationPair cellLocationPairBA){
         this.name = name;
         this.publicKey = publicKey;
         this.cellLocationIndex = -1;
         this.tag = null;
     }
-    public State(String name, String publicKey, int cellLocationIndex, String tag){
+    public State(String name, String sharedKey, CellLocationPair cellLocationPair){
         this.name = name;
         this.publicKey = publicKey;
         this.cellLocationIndex = cellLocationIndex;

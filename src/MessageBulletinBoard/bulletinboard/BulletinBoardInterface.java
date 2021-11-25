@@ -4,7 +4,7 @@ import java.rmi.*;
 
 public interface BulletinBoardInterface extends Remote{
     String get(int i, String b) throws RemoteException;
-    void add(int index, String value, String tag) throws RemoteException;
+    boolean add(int index, String value, String tag, String token) throws RemoteException;
 
     int NUMBER_CELLS = 100;
 

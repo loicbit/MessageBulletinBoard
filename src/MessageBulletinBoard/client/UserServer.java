@@ -27,15 +27,15 @@ public class UserServer implements UserServerInterface{
     private HashMap<String, Key> publickeys= new HashMap<>();
     private AssymEncrypt assymEncrypt;
 
-    private HashMap<String, State> firstStates= new HashMap<>();
-    private HashMap<String, Integer> firstStateHashes= new HashMap<>();
+    //private HashMap<String, State> firstStates= new HashMap<>();
+    //private HashMap<String, Integer> firstStateHashes= new HashMap<>();
+    private HashMap<String, String> state= new HashMap<>();
     private Registry registry = null;
 
     private HashMap<String, CellLocationPair> firsCellsAB = new HashMap();
     private HashMap<String, CellLocationPair> firsCellsBA = new HashMap();
 
     public UserServer(String nameUser) throws Exception{
-        //todo: generate publickey
         this.assymEncrypt = new AssymEncrypt();
 
         try {
@@ -62,20 +62,14 @@ public class UserServer implements UserServerInterface{
 
     @Override
     public byte[] initContact(String nameContact, byte[] publicKeyStr) throws RemoteException {
-        //todo: add asyncrhone encryption
         Key publicKeyOther = SerializationUtils.deserialize(publicKeyStr);
         this.publickeys.put(nameContact, publicKeyOther);
-
-        //State newState = new State(nameContact, publicKey);
-        //this.firstStates.put(nameContact, newState);
 
         return this.assymEncrypt.getPublicKeySer();
     }
 
     @Override
     public byte[] getFirstCell(byte[] firstCellBA) throws Exception {
-
-
         String decrypted = this.assymEncrypt.do_RSADecryption(firstCellBA);
 
         String[] response = decrypted.split(UserServerInterface.DIV_CELL);
@@ -98,6 +92,28 @@ public class UserServer implements UserServerInterface{
         String newCellABStr = newCellAB.toString();
         byte[] encrypted = this.assymEncrypt.do_RSAEncryption(newCellABStr, this.publickeys.get(nameContact));
 
+        return encrypted;
+    }
+
+    @Override
+    public byte[] checkState(byte[] hashState) throws Exception {
+        //todo generate own state
+        String sameState = "";
+
+        String decrypted = this.assymEncrypt.do_RSADecryption(hashState);
+
+        String[] response = decrypted.split(UserServerInterface.DIV_CELL);
+        String nameContact = response[0];
+
+        if(this.state.get(nameContact).equals(response[1])){
+            sameState = "true";
+        }
+        else{
+            sameState = "false";
+        }
+
+        //change return to own state
+        byte[] encrypted = this.assymEncrypt.do_RSAEncryption(sameState, this.publickeys.get(nameContact));
         return encrypted;
     }
 
@@ -125,6 +141,7 @@ public class UserServer implements UserServerInterface{
     }
 
     public Key getPublicKeyContact(String contactName){
+
         return this.publickeys.get(contactName);
     }
 

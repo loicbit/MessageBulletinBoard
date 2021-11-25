@@ -8,6 +8,7 @@ public class CellLocationPair implements Serializable {
     private int index;
     private String tag;
     public static String divider = "DIVPCELL";
+    private MessageDigest md = null;
 
     public String getTagHash() {
         return tagHash;
@@ -26,7 +27,7 @@ public class CellLocationPair implements Serializable {
 
     public void setTag(String tag) {
         this.tag = tag;
-        MessageDigest md = null;
+
         try {
             md = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
@@ -46,7 +47,6 @@ public class CellLocationPair implements Serializable {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-
     }
 
     public CellLocationPair(String pairString){
@@ -60,6 +60,10 @@ public class CellLocationPair implements Serializable {
     @Override
     public String toString() {
         return index +  CellLocationPair.divider + tag;
+    }
+
+    public String getHash(){
+        return new String(this.md.digest(this.toString().getBytes()));
     }
 
     @Override

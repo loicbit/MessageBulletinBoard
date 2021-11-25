@@ -114,6 +114,8 @@ public class UserGui {
             //todo: print notification
             //      use different exceptions to notify
         }
+
+
     }
 
     private void addContact(String nameContact) throws Exception {
@@ -155,6 +157,7 @@ public class UserGui {
     private void sendMessage(String name, String message) throws RemoteException {
         //todo handle null client
         if(this.userClient.containsKey(name) && this.userClient.get(name).isConnected()){
+            //this.to
             boolean sent=  this.userClient.get(name).sendMessageBoard(message);
 
             if(!sent){
@@ -186,6 +189,7 @@ public class UserGui {
         }
     }
 
+    // todo update layout
     private void updateConversation(){
         String currentContact = String.valueOf(comboBoxContacts.getSelectedItem());
 
@@ -223,8 +227,5 @@ public class UserGui {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
-
-
-
     }
 }

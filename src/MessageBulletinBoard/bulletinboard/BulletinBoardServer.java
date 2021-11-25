@@ -11,7 +11,9 @@ import MessageBulletinBoard.data.CellPair;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.Signature;
 import java.util.LinkedList;
+import java.util.List;
 
 public class BulletinBoardServer implements BulletinBoardInterface{
     private BulletinCell cells[] = null;
@@ -19,6 +21,9 @@ public class BulletinBoardServer implements BulletinBoardInterface{
 
     static Registry registry = null;
     private MessageDigest md;
+    private Signature signature = null;
+
+    private List<String> usedTokens = new LinkedList<>();
 
     public BulletinBoardServer() throws NoSuchAlgorithmException {
         this.cells = new BulletinCell[NUMBER_CELLS];
@@ -27,6 +32,16 @@ public class BulletinBoardServer implements BulletinBoardInterface{
         for(int i=0; i< NUMBER_CELLS; i++){
             this.cells[i] = new BulletinCell();
         }
+        initSignature();
+
+    }
+
+    private void initSignature() throws NoSuchAlgorithmException {
+        this.signature = Signature.getInstance("SHA256withRSA");
+
+
+        //todo ask pubkey
+        //signature.initVerify(publicKey);
     }
 
     public static void main(String[] args){
@@ -70,8 +85,23 @@ public class BulletinBoardServer implements BulletinBoardInterface{
     }
 
     @Override
-    public void add(int index, String value, String tag) throws RemoteException {
-        CellPair newPair = new CellPair(value, tag);
-        this.cells[index].addPair(newPair);
+    public boolean add(int index, String value, String tag, String token) throws RemoteException {
+        if(verifyToken(token)){
+            CellPair newPair = new CellPair(value, tag);
+            this.cells[index].addPair(newPair);
+            return true;
+        }else return false;
+    }
+
+    private boolean verifyToken(String token){
+        return true;
+
+        //todo verify
+        //todo save used tokens and check
+        /*
+        if(this.usedTokens.contains(token)) return false;
+
+        //this.signature
+        return true;*/
     }
 }

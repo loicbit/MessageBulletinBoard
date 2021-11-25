@@ -6,6 +6,8 @@ import javax.crypto.Cipher;
 import java.security.*;
 import java.util.HashMap;
 
+//todo: change key serialisation
+// https://docs.oracle.com/javase/7/docs/api/java/security/KeyFactory.html
 public class AssymEncrypt {
     private static final String RSA
             = "RSA";
