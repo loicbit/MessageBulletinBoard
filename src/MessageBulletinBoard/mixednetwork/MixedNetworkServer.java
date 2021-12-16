@@ -1,6 +1,5 @@
-package MessageBulletinBoard.tokenserver;
+package MessageBulletinBoard.mixednetwork;
 
-import MessageBulletinBoard.client.UserServerInterface;
 import MessageBulletinBoard.crypto.AssymEncrypt;
 import org.apache.commons.lang3.SerializationUtils;
 
@@ -15,7 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-public class TokenServer implements TokenServerInterface{
+public class MixedNetworkServer implements MixedNetworkServerInterface {
     private AssymEncrypt assymEncrypt;
     private HashMap<String, Key> publickeys= new HashMap<>();
     static Registry registry = null;
@@ -28,22 +27,22 @@ public class TokenServer implements TokenServerInterface{
     private static final SecureRandom secureRandom = new SecureRandom(); //threadsafe
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder(); //threadsafe
 
-    public TokenServer() throws Exception {
+    public MixedNetworkServer() throws Exception {
         this.assymEncrypt = new AssymEncrypt();
         initSignature();
     }
     public static void main(String[] args) throws Exception {
         try {
-            TokenServer obj = new TokenServer();
-            TokenServerInterface stub = (TokenServerInterface) UnicastRemoteObject.exportObject(obj, 0);
+            MixedNetworkServer obj = new MixedNetworkServer();
+            MixedNetworkServerInterface stub = (MixedNetworkServerInterface) UnicastRemoteObject.exportObject(obj, 0);
 
             try{
-                registry = LocateRegistry.createRegistry(TokenServerInterface.REG_PORT);
+                registry = LocateRegistry.createRegistry(MixedNetworkServerInterface.REG_PORT);
             }catch(Exception e) {
-                registry = LocateRegistry.getRegistry(TokenServerInterface.REG_PORT);
+                registry = LocateRegistry.getRegistry(MixedNetworkServerInterface.REG_PORT);
             }
 
-            String nameReg = TokenServerInterface.DEF_PATH;
+            String nameReg = MixedNetworkServerInterface.DEF_PATH;
             registry.bind(nameReg, stub);
 
 
@@ -61,35 +60,6 @@ public class TokenServer implements TokenServerInterface{
         return this.assymEncrypt.getPublicKeySer();
     }
 
-    @Override
-    public byte[] getToken(byte[] id) throws Exception {
-
-        String idString = this.assymEncrypt.do_RSADecryption(id);
-
-        if(this.publickeys.containsKey(idString)){
-            Key keyOther = this.publickeys.get(idString);
-
-            List<byte []> tokens = generateTokens(TokenServerInterface.NUMBER_TOKENS_SESSION);
-            String tokensString= "";
-
-            for (byte[] token: tokens) {
-                tokensString += Base64.getEncoder().encodeToString(token);
-                tokensString += TokenServerInterface.DIV_TOKEN;
-            }
-
-            return this.assymEncrypt.do_RSAEncryption(tokensString, keyOther);
-
-        }else return null;
-    }
-
-    @Override
-    public byte[] getPublicKeySign(byte[] id) throws RemoteException {
-        //todo encrypt
-        //this.assymEncrypt.do_RSAEncryption()
-
-        byte[] publicKeySer = SerializationUtils.serialize(this.pair.getPublic());
-        return publicKeySer;
-    }
 
     private void initSignature() throws NoSuchAlgorithmException, InvalidKeyException {
         //Creating KeyPair generator object
@@ -108,20 +78,6 @@ public class TokenServer implements TokenServerInterface{
         this.sign = Signature.getInstance("SHA256withDSA");
 
         this.sign.initSign(this.privKey);
-    }
-
-    private List<byte[]> generateTokens(int numberTokens) throws SignatureException {
-        LinkedList<byte[]> tokens = new LinkedList<>();
-
-        for(int i=0; i < numberTokens; i++){
-            byte[] randomBytes = new byte[24];
-            secureRandom.nextBytes(randomBytes);
-            this.sign.update(randomBytes);
-
-            tokens.add(this.sign.sign());
-        }
-
-        return tokens;
     }
 
     private boolean authenticateUser(String name, String password){

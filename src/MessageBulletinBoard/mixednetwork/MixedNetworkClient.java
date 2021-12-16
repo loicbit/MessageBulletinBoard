@@ -1,4 +1,4 @@
-package MessageBulletinBoard.tokenserver;
+package MessageBulletinBoard.mixednetwork;
 
 import MessageBulletinBoard.bulletinboard.BulletinBoardInterface;
 import MessageBulletinBoard.crypto.AssymEncrypt;
@@ -11,15 +11,15 @@ import java.security.Key;
 import java.util.LinkedList;
 import java.util.List;
 
-public class TokenClient {
+public class MixedNetworkClient {
     private List<byte []> tokens;
-    private TokenServerInterface tokenServerStub;
+    private MixedNetworkServerInterface tokenServerStub;
     private Registry registry;
     private String nameUser;
     private AssymEncrypt assymEncrypt;
     private Key publicKeyTokenServer;
 
-    public TokenClient(String nameUser) throws Exception {
+    public MixedNetworkClient(String nameUser) throws Exception {
         this.nameUser = nameUser;
         this.tokens = new LinkedList<>();
         this.assymEncrypt = new AssymEncrypt();
@@ -31,11 +31,10 @@ public class TokenClient {
         }
 
         try{
-            this.tokenServerStub = (TokenServerInterface) this.registry.lookup(TokenServerInterface.DEF_PATH);
+            this.tokenServerStub = (MixedNetworkServerInterface) this.registry.lookup(MixedNetworkServerInterface.DEF_PATH);
         }catch(Exception e){
             System.out.println(e);
         }
-
     }
 
     public void initTokenServer() throws RemoteException {
@@ -44,14 +43,6 @@ public class TokenClient {
 
         byte[] publicKeyOtherSer = this.tokenServerStub.initContact(this.nameUser, publicKeyUserSer);
         this.publicKeyTokenServer = SerializationUtils.deserialize(publicKeyOtherSer);
-    }
-
-    public void getTokens(){
-
-    }
-
-    private void getNewTokens(){
-
     }
 
     private boolean verifyTokens(List<byte[]> tokens){

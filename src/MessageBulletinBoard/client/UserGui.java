@@ -1,5 +1,7 @@
 package MessageBulletinBoard.client;
 
+import MessageBulletinBoard.authenticationserver.AuthenticationClient;
+import MessageBulletinBoard.authenticationserver.AuthenticationServerInterface;
 import MessageBulletinBoard.data.CellLocationPair;
 
 import javax.swing.*;
@@ -23,10 +25,13 @@ public class UserGui {
     private JTextField textFieldMessage;
     private JButton buttonSendMessage;
     private JButton buttonConnect;
+    private JButton buttonGetAuthenticated;
 
     private UserServer userServer;
     private HashMap<String, UserClient>  userClient = new HashMap();
 
+    private AuthenticationClient authClient;
+    private AuthenticationServerInterface authServerStub;
 
     //AssymEncrypt assymEncrypt = new AssymEncrypt();
 
@@ -75,6 +80,18 @@ public class UserGui {
             }
         });
 
+        buttonGetAuthenticated.addActionListener(new ActionListener() {
+            //todo: throw except username not yet set.
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    authenticate();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
         Timer t = new Timer();
 
         TimerTask messagePoller = new TimerTask() {
@@ -114,8 +131,13 @@ public class UserGui {
             //todo: print notification
             //      use different exceptions to notify
         }
+    }
 
-
+    private void authenticate() throws Exception {
+        // todo notify if it fails
+        this.authClient = new AuthenticationClient(nameUser);
+        this.authClient.initAuthServer();
+        this.authClient.getTokens();
     }
 
     private void addContact(String nameContact) throws Exception {

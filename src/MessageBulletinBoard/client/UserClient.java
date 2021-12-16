@@ -1,10 +1,11 @@
 package MessageBulletinBoard.client;
 
+import MessageBulletinBoard.authenticationserver.AuthenticationClient;
 import MessageBulletinBoard.bulletinboard.BulletinBoardClient;
 import MessageBulletinBoard.bulletinboard.BulletinBoardInterface;
 import MessageBulletinBoard.crypto.AssymEncrypt;
 import MessageBulletinBoard.data.CellLocationPair;
-import MessageBulletinBoard.tokenserver.TokenServerInterface;
+import MessageBulletinBoard.authenticationserver.AuthenticationServerInterface;
 import org.apache.commons.lang3.SerializationUtils;
 
 import java.nio.charset.Charset;
@@ -13,7 +14,6 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.security.Key;
 import java.security.SecureRandom;
-import java.util.HashMap;
 import java.util.Random;
 
 public class UserClient {
@@ -39,11 +39,11 @@ public class UserClient {
 
     private BulletinBoardClient boardClient;
 
+
     private UserServerInterface contactServerStub;
-    private TokenServerInterface tokenServerStub;
+
 
     public UserClient(String contact, String user) throws Exception {
-        //todo: add state of communication (assynchrone securded connection,firstcell exchange, sec parameter, messages)
         this.publicKey = null;
         this.nameContact = contact;
         this.nameUser = user;
@@ -53,6 +53,7 @@ public class UserClient {
         this.assymEncrypt = new AssymEncrypt();
 
         this.boardClient = new BulletinBoardClient(contact);
+
 
         try{
             this.registry = LocateRegistry.createRegistry(UserServerInterface.REG_PORT);

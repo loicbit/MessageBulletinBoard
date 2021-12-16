@@ -58,6 +58,23 @@ public class BulletinBoardClient {
         this.md = MessageDigest.getInstance(BulletinBoardInterface.algoMD);
     }
 
+    //todo connection with mixed network
+    public BulletinBoardClient() throws RemoteException, NotBoundException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
+        this.diffiehAB = new DiffieH();
+        this.diffiehBA = new DiffieH();
+
+        try{
+            this.registry = LocateRegistry.createRegistry(BulletinBoardInterface.REG_PORT);
+        }catch(Exception e) {
+            this.registry = LocateRegistry.getRegistry(BulletinBoardInterface.REG_PORT);
+        }
+
+        this.bulletinServerStub = (BulletinBoardInterface) this.registry.lookup(BulletinBoardInterface.STUB_NAME);
+
+        this.md = MessageDigest.getInstance(BulletinBoardInterface.algoMD);
+    }
+
+
     public void setNextCellLocationPairAB(CellLocationPair next){
         //todo first check if there is
         //this.generateStateHashAB();

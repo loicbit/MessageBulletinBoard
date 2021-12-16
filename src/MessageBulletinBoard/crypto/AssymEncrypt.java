@@ -58,6 +58,19 @@ public class AssymEncrypt {
                 plainText.getBytes());
     }
 
+    // Encryption function which converts
+    // the plainText into a cipherText
+    // using private Key.
+    public byte[] do_RSAEncryption(byte[] plainTextBytes, Key publicKey) throws Exception {
+        //Key publicKey= SerializationUtils.deserialize(publicKeyStr.getBytes());
+
+        Cipher cipher = Cipher.getInstance(RSA);
+
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+
+        return cipher.doFinal(plainTextBytes);
+    }
+
     // Decryption function which converts
     // the ciphertext back to the
     // original plaintext.
@@ -70,12 +83,19 @@ public class AssymEncrypt {
         return new String(result);
     }
 
-    // Driver code
-    /*public static void main(String args[])
-            throws Exception
-    {
+    // Decryption function which converts
+    // the ciphertext back to the
+    // original plaintext.
+    public byte[] do_RSADecryption_byte(byte[] cipherText) throws Exception{
+        Cipher cipher = Cipher.getInstance(RSA);
 
+        cipher.init(Cipher.DECRYPT_MODE, this.keypair.getPrivate());
+        byte[] result = cipher.doFinal(cipherText);
 
+        return result;
+    }
+
+    /*
 
 
         byte[] cipherText
