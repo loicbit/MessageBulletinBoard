@@ -220,6 +220,9 @@ public class UserGui {
         return false;
     }
 
+    private void updateState(){
+        //get latest state of bullentin, send to server.
+    }
     public static void main(String[] args) {
         JFrame frame = new JFrame("User");
 

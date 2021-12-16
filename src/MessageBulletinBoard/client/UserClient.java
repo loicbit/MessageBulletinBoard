@@ -180,6 +180,21 @@ public class UserClient {
     }
 
 
+    //todo get states from bulletin
+
+    private void updateStates(){
+
+    }
+
+    /*
+    public byte[] getStateSend(){
+        return this.boardClient.getStateHashSend();
+    }
+
+    public byte[] getStateReceive(){
+        return this.boardClient.getStateHashReceive();
+    }*/
+
      /*
     public CellLocationPair getNextCellLocationPairAB(){
         return this.nextCellLocationPairAB;

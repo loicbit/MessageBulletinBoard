@@ -2,9 +2,10 @@ package MessageBulletinBoard.bulletinboard;
 
 import MessageBulletinBoard.crypto.DiffieH;
 import MessageBulletinBoard.data.CellLocationPair;
-import MessageBulletinBoard.tokenserver.TokenServerInterface;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -13,13 +14,11 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Random;
 
 public class BulletinBoardClient {
-    //todo: encrypt communication
-
     private Registry registry;
     String nameUser = null;
 
@@ -39,6 +38,9 @@ public class BulletinBoardClient {
 
     private LinkedList<String> tokens = new LinkedList<>();
 
+    private byte[] hashAB;
+    private byte[] stateHash;
+
     // todo generate hash of the state
 
     public BulletinBoardClient(String contact) throws RemoteException, NotBoundException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
@@ -53,16 +55,13 @@ public class BulletinBoardClient {
 
         this.bulletinServerStub = (BulletinBoardInterface) this.registry.lookup(BulletinBoardInterface.STUB_NAME);
 
-
-
         this.md = MessageDigest.getInstance(BulletinBoardInterface.algoMD);
-        //System.out.println(this.bulletinServerStub);
-
     }
 
     public void setNextCellLocationPairAB(CellLocationPair next){
+        //todo first check if there is
+        //this.generateStateHashAB();
         this.nextCellLocationPairAB = next;
-
     }
 
     public void setNextCellLocationPairBA(CellLocationPair next){
@@ -70,10 +69,18 @@ public class BulletinBoardClient {
     }
 
     public void sendMessage(String message) throws RemoteException {
+
+
         // In case publickeys not yet send, send them
-        if(!this.publicKeysSend) sendPublicKeys();
+        if(!this.publicKeysSend){
+            //this.generateStateHashAB();
+            sendPublicKeys();
+        }
 
         CellLocationPair locationCurrentMessage = this.nextCellLocationPairAB;
+
+        // Generate hash of the cell to send
+        //this.generateStateHashAB();
 
         if(locationCurrentMessage != null){
             //String token = getToken();
@@ -91,6 +98,7 @@ public class BulletinBoardClient {
     //todo change name
     public void sendPublicKeys() throws RemoteException{
         CellLocationPair locationCurrentMessage = this.nextCellLocationPairAB;
+
         String publicKeyAB = this.diffiehAB.getPubKey();
         String publicKeyBA = this.diffiehBA.getPubKey();
 
@@ -189,5 +197,53 @@ public class BulletinBoardClient {
         return this.diffiehAB.isSecurd() && this.diffiehBA.isSecurd();
     }
 
+    /*
+    private void generateStateHashAB(){
+        if(this.nextCellLocationPairAB == null) this.hashAB = null;
+        else{
+            this.hashAB = this.nextCellLocationPairAB.getHash().getBytes(StandardCharsets.UTF_8);
+        }
+    }*/
+
+    private byte[] getHashBA(){
+        return this.nextCellLocationPairBA.getHash().getBytes(StandardCharsets.UTF_8);
+    }
+
+    // Generate a hash of the current cell to send and receive
+    // Order is different
+
+    /*
+    //todo: change to serialize a state object
+    public byte[] getStateHashSend(){
+        byte[] ab =this.hashAB;
+        byte[] ba = this.getHashBA();
+
+        byte[] byteArray = new byte[ab.length + ba.length];
+
+        ByteBuffer buff = ByteBuffer.wrap(byteArray);
+        buff.put(ab);
+        buff.put(ba);
+
+        return buff.array();
+    }*/
+
+    /*
+    public byte[] getStateHashReceive(){
+        byte[] ab =this.hashAB;
+        byte[] ba = this.getHashBA();
+
+        byte[] byteArray = new byte[ab.length + ba.length];
+
+        ByteBuffer buff = ByteBuffer.wrap(byteArray);
+        buff.put(ba);
+        buff.put(ab);
+
+        return buff.array();
+    }*/
+
+    /*
+    public boolean compareState(byte[] stateOther){
+        return Arrays.equals(this.getStateHashReceive(), stateOther);
+    }*/
 
 }

@@ -16,13 +16,14 @@ import java.util.Base64;
 import java.util.Random;
 
 public class DiffieH {
-    private KeyPairGenerator kPairGen;
-    private KeyAgreement keyAgree;
+    //private KeyPairGenerator kPairGen;
+    //private KeyAgreement keyAgree;
 
-    private KeyPair keyPair;
+    //private KeyPair keyPair;
 
-    private KeyFactory keyFac;
-    private X509EncodedKeySpec x509KeySpec;
+    //private KeyFactory keyFac;
+    //private X509EncodedKeySpec x509KeySpec;
+
     //private PublicKey pubKey;
     //private SecretKeySpec aesKey = null;
 
@@ -38,6 +39,9 @@ public class DiffieH {
     KeyAgreement keyAgreement;
     byte[] sharedsecret = null;
     byte[] sharedAESsecret = null;
+    private SecretKey originalKey = null;
+    private KeySpec specs = null;
+    private KeySpec specs2 = null;
 
     String ALGO = "AES";
     private String KEYGEN_SPEC = "PBKDF2WithHmacSHA1";
@@ -48,6 +52,7 @@ public class DiffieH {
     private String KEYFACT_INST = "EC";
 
     SecureRandom randomSalt;
+    byte[] salt;
 
 
     public DiffieH() throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
@@ -82,7 +87,7 @@ public class DiffieH {
             keyAgreement.doPhase(publickeyOther, true);
             this.sharedsecret = keyAgreement.generateSecret();
             this.sharedAESsecret = Arrays.copyOf(this.sharedsecret, this.KEY_LENGTH);
-
+            this.originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
             //this.secretKeyAES = new SecretKeySpec(this.sharedAESsecret, "AES");
         } catch (InvalidKeyException e) {
             e.printStackTrace();
@@ -99,8 +104,8 @@ public class DiffieH {
         try {
             Cipher cipher = Cipher.getInstance("AES");
             // rebuild key using SecretKeySpec
-            SecretKey originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
-            cipher.init(Cipher.ENCRYPT_MODE, originalKey);
+
+            cipher.init(Cipher.ENCRYPT_MODE, this.originalKey);
             byte[] cipherText = cipher.doFinal(msg.getBytes("UTF-8"));
             //deriveKey();
 
@@ -115,8 +120,8 @@ public class DiffieH {
         try {
             Cipher cipher = Cipher.getInstance("AES");
             // rebuild key using SecretKeySpec
-            SecretKey originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
-            cipher.init(Cipher.DECRYPT_MODE, originalKey);
+            //SecretKey originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
+            cipher.init(Cipher.DECRYPT_MODE, this.originalKey);
             byte[] cipherText = cipher.doFinal(Base64.getDecoder().decode(encryptedData));
             //deriveKey();
 
@@ -140,6 +145,9 @@ public class DiffieH {
         //this.randomSalt = new SecureRandom(seedSalt);
     }
 
+    public void setSalt(byte[] salt){
+        this.salt = salt;
+    }
     /*private byte[] generateRandomSeed(){
         //return getSecureRandomSeed();
     }*/
@@ -150,13 +158,31 @@ public class DiffieH {
         return saltTemp;
     }
 
-    private void deriveKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public void deriveKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
+
+        SecretKeyFactory kf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        //KeySpec specs = new
+        int keylength = 2^this.KEY_LENGTH;
+        this.specs = new PBEKeySpec(this.sharedsecret.toString().toCharArray(), this.salt, 65536, 256);
+        this.specs2 = new PBEKeySpec(this.sharedsecret.toString().toCharArray(), this.salt, 65536, 256);
+        //SecretKeyFactory f = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+
+        //KeySpec keySpec = new SecretKeySpec()
+        byte[] key = kf.generateSecret(specs).getEncoded();
+        byte[] key_aes = Arrays.copyOf(key, this.KEY_LENGTH);
+        SecretKey secret = new SecretKeySpec(key_aes, "AES");
+        this.originalKey = secret;
+        //this.originalKey = kf.generateSecret(specs);
+
+
+
+        //this.originalKey = SecretKeyFactory.getInstance("AES").generateSecret();
         // as salt use random with init salt
-        byte[] salt = generateSalt();
+        /*byte[] salt = generateSalt();
         KeySpec spec = new PBEKeySpec(this.sharedsecret.toString().toCharArray(), salt, ITERATIONS, 128);
         SecretKey secret = new SecretKeySpec(SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1").generateSecret(spec).getEncoded(), "AES");
 
-        this.sharedAESsecret = secret.getEncoded();
+        this.sharedAESsecret = secret.getEncoded();*/
         //SecretKeyFactory factory = null;
         /*
         SecretKeyFactory factory = null;
