@@ -1,6 +1,7 @@
 package MessageBulletinBoard.authenticationserver;
 
-import MessageBulletinBoard.crypto.AssymEncrypt;
+import MessageBulletinBoard.crypto.AsymEncrypt;
+import MessageBulletinBoard.bulletinboard.BulletinBoardClient;
 import org.apache.commons.lang3.SerializationUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -17,7 +18,7 @@ import java.util.List;
 
 
 public class AuthenticationServer implements AuthenticationServerInterface {
-    private AssymEncrypt assymEncrypt;
+    private AsymEncrypt asymEncrypt;
     private HashMap<String, Key> publickeys= new HashMap<>();
     static Registry registry = null;
 
@@ -29,8 +30,10 @@ public class AuthenticationServer implements AuthenticationServerInterface {
     private static final SecureRandom secureRandom = new SecureRandom(); //threadsafe
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder(); //threadsafe
 
+    private BulletinBoardClient bulletinBoardClient;
+
     public AuthenticationServer() throws Exception {
-        this.assymEncrypt = new AssymEncrypt();
+        this.asymEncrypt = new AsymEncrypt();
         initSignature();
     }
     public static void main(String[] args) throws Exception {
@@ -49,6 +52,7 @@ public class AuthenticationServer implements AuthenticationServerInterface {
 
 
             System.err.println("Server ready");
+
         }catch (Exception e) {
             throw new Exception(e);
         }
@@ -61,13 +65,13 @@ public class AuthenticationServer implements AuthenticationServerInterface {
 
         String out = name + "is connected";
         System.err.println(out);
-        return this.assymEncrypt.getPublicKeySer();
+        return this.asymEncrypt.getPublicKeySer();
     }
 
     @Override
     public byte[] getToken(byte[] id) throws Exception {
 
-        String idString = this.assymEncrypt.do_RSADecryption(id);
+        String idString = this.asymEncrypt.do_RSADecryption(id);
 
         if(this.publickeys.containsKey(idString)){
             Key keyOther = this.publickeys.get(idString);
@@ -85,7 +89,7 @@ public class AuthenticationServer implements AuthenticationServerInterface {
             oos.writeObject(tokensString);
             byte[] bytes = bos.toByteArray();
 
-            return this.assymEncrypt.do_RSAEncryption(bytes, keyOther);
+            return this.asymEncrypt.do_RSAEncryption(bytes, keyOther);
 
         }else return null;
     }

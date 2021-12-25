@@ -2,11 +2,7 @@ package MessageBulletinBoard.crypto;
 
 import org.apache.commons.lang3.SerializationUtils;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import java.security.*;
-import java.security.spec.InvalidKeySpecException;
 
 public class testCrypto {
     private static final int SALT_LENGTH = 16; // in bytes
@@ -37,8 +33,6 @@ public class testCrypto {
         System.out.println(diffieB.decrypt(result2));
 
         System.out.println("Test KDF");
-        diffieA.deriveKey();
-        diffieB.deriveKey();
 
         String result_kdf_1 = diffieA.encrypt("test_1");
         System.out.println(diffieB.decrypt(result_kdf_1));
@@ -47,10 +41,16 @@ public class testCrypto {
         System.out.println(diffieB.decrypt(result_kdf_2));
 
 
+        String result_kdf_2_1 = diffieA.encrypt("test_kdf_2_1");
+        System.out.println(diffieB.decrypt(result_kdf_2_1));
+
+        String result_kdf_2_2 = diffieA.encrypt("test_kdf_2_2");
+        System.out.println(diffieB.decrypt(result_kdf_2_2));
+
         String plainText = "Test_RSA";
 
-        AssymEncrypt alice = new AssymEncrypt();
-        AssymEncrypt bob = new AssymEncrypt();
+        AsymEncrypt alice = new AsymEncrypt();
+        AsymEncrypt bob = new AsymEncrypt();
 
         byte[] data = SerializationUtils.serialize(result);
         String yourObject = SerializationUtils.deserialize(data);

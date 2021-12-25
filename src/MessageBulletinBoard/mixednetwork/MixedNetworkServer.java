@@ -1,21 +1,22 @@
 package MessageBulletinBoard.mixednetwork;
 
-import MessageBulletinBoard.crypto.AssymEncrypt;
+import MessageBulletinBoard.bulletinboard.BulletinBoardClient;
+import MessageBulletinBoard.crypto.AsymEncrypt;
 import org.apache.commons.lang3.SerializationUtils;
 
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 
 
 public class MixedNetworkServer implements MixedNetworkServerInterface {
-    private AssymEncrypt assymEncrypt;
+    private AsymEncrypt asymEncrypt;
     private HashMap<String, Key> publickeys= new HashMap<>();
     static Registry registry = null;
 
@@ -24,12 +25,16 @@ public class MixedNetworkServer implements MixedNetworkServerInterface {
     private PrivateKey privKey = null;
     private Signature sign = null;
 
+    private BulletinBoardClient bulletinBoardClient = null;
+
     private static final SecureRandom secureRandom = new SecureRandom(); //threadsafe
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder(); //threadsafe
 
     public MixedNetworkServer() throws Exception {
-        this.assymEncrypt = new AssymEncrypt();
+        this.asymEncrypt = new AsymEncrypt();
         initSignature();
+        this.bulletinBoardClient = new BulletinBoardClient();
+        System.err.println("Bulletinboard server connected");
     }
     public static void main(String[] args) throws Exception {
         try {
@@ -45,8 +50,9 @@ public class MixedNetworkServer implements MixedNetworkServerInterface {
             String nameReg = MixedNetworkServerInterface.DEF_PATH;
             registry.bind(nameReg, stub);
 
-
             System.err.println("Server ready");
+
+            obj.connectBulletinBoard();
         }catch (Exception e) {
             throw new Exception(e);
         }
@@ -57,9 +63,28 @@ public class MixedNetworkServer implements MixedNetworkServerInterface {
         Key publicKeyOther = SerializationUtils.deserialize(publicKey);
         this.publickeys.put(name, publicKeyOther);
 
-        return this.assymEncrypt.getPublicKeySer();
+        return this.asymEncrypt.getPublicKeySer();
     }
 
+    @Override
+    public String get(int i, String b, String token) throws RemoteException {
+        if(verifyToken(token)){
+            return this.bulletinBoardClient.get(i, b);
+        }
+        return null;
+    }
+
+    @Override
+    public boolean add(int index, String value, String tag, String token) throws RemoteException {
+        if(verifyToken(token)){
+            this.bulletinBoardClient.add(index,value,tag);
+        }
+        return false;
+    }
+
+    private void connectBulletinBoard() throws Exception {
+        this.bulletinBoardClient = new BulletinBoardClient();
+    }
 
     private void initSignature() throws NoSuchAlgorithmException, InvalidKeyException {
         //Creating KeyPair generator object
@@ -82,5 +107,17 @@ public class MixedNetworkServer implements MixedNetworkServerInterface {
 
     private boolean authenticateUser(String name, String password){
         return true;
+    }
+
+    private boolean verifyToken(String token){
+        return true;
+
+        //todo verify
+        //todo save used tokens and check
+        /*
+        if(this.usedTokens.contains(token)) return false;
+
+        //this.signature
+        return true;*/
     }
 }

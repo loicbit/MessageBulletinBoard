@@ -1,19 +1,17 @@
 package MessageBulletinBoard.crypto;
 
 import javax.crypto.*;
-import javax.crypto.spec.DESedeKeySpec;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Random;
+import java.util.Collections;
+import java.util.List;
 
 public class DiffieH {
     //private KeyPairGenerator kPairGen;
@@ -51,9 +49,12 @@ public class DiffieH {
 
     private String KEYFACT_INST = "EC";
 
+    public byte[] secretKeyPBE;
+
     SecureRandom randomSalt;
     byte[] salt;
 
+    private PublicKey publickeyOther;
 
     public DiffieH() throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
         //this.generatePublicKey();
@@ -82,7 +83,7 @@ public class DiffieH {
         try {
             byte[] byte_pubkey_other = Base64.getDecoder().decode(publicKeyString);
             KeyFactory factory = KeyFactory.getInstance(this.KEYFACT_INST);
-            PublicKey publickeyOther = factory.generatePublic(new X509EncodedKeySpec(byte_pubkey_other));
+            this.publickeyOther = factory.generatePublic(new X509EncodedKeySpec(byte_pubkey_other));
 
             keyAgreement.doPhase(publickeyOther, true);
             this.sharedsecret = keyAgreement.generateSecret();
@@ -107,7 +108,7 @@ public class DiffieH {
 
             cipher.init(Cipher.ENCRYPT_MODE, this.originalKey);
             byte[] cipherText = cipher.doFinal(msg.getBytes("UTF-8"));
-            //deriveKey();
+            this.deriveKey();
 
             return Base64.getEncoder().encodeToString(cipherText);
         } catch (Exception e) {
@@ -123,7 +124,7 @@ public class DiffieH {
             //SecretKey originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
             cipher.init(Cipher.DECRYPT_MODE, this.originalKey);
             byte[] cipherText = cipher.doFinal(Base64.getDecoder().decode(encryptedData));
-            //deriveKey();
+            this.deriveKey();
 
             return new String(cipherText);
         } catch (Exception e) {
@@ -158,55 +159,23 @@ public class DiffieH {
         return saltTemp;
     }
 
-    public void deriveKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public void deriveKey() throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, ShortBufferException {
+        // todo: add random salt based on a securrandom
+        // todo: bigger key
 
-        SecretKeyFactory kf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        //KeySpec specs = new
-        int keylength = 2^this.KEY_LENGTH;
-        this.specs = new PBEKeySpec(this.sharedsecret.toString().toCharArray(), this.salt, 65536, 256);
-        this.specs2 = new PBEKeySpec(this.sharedsecret.toString().toCharArray(), this.salt, 65536, 256);
-        //SecretKeyFactory f = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+        MessageDigest keyHash = MessageDigest.getInstance("SHA-256");
+        keyHash.update(this.sharedAESsecret);
 
-        //KeySpec keySpec = new SecretKeySpec()
-        byte[] key = kf.generateSecret(specs).getEncoded();
-        byte[] key_aes = Arrays.copyOf(key, this.KEY_LENGTH);
-        SecretKey secret = new SecretKeySpec(key_aes, "AES");
-        this.originalKey = secret;
-        //this.originalKey = kf.generateSecret(specs);
+        // Sort to have the same order for A and B
+        List<ByteBuffer> keys = Arrays.asList(ByteBuffer.wrap(this.publickey.getEncoded()), ByteBuffer.wrap(this.publickeyOther.getEncoded()));
+        Collections.sort(keys);
 
+        keyHash.update(keys.get(0));
+        keyHash.update(keys.get(1));
 
-
-        //this.originalKey = SecretKeyFactory.getInstance("AES").generateSecret();
-        // as salt use random with init salt
-        /*byte[] salt = generateSalt();
-        KeySpec spec = new PBEKeySpec(this.sharedsecret.toString().toCharArray(), salt, ITERATIONS, 128);
-        SecretKey secret = new SecretKeySpec(SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1").generateSecret(spec).getEncoded(), "AES");
-
-        this.sharedAESsecret = secret.getEncoded();*/
-        //SecretKeyFactory factory = null;
-        /*
-        SecretKeyFactory factory = null;
-
-        try {
-            factory = SecretKeyFactory.getInstance(KEYGEN_SPEC);
-        } catch (NoSuchAlgorithmException impossible) {
-            //return null;
-        }
-        // derive a longer key, then split into AES key and authentication key
-
-        KeySpec spec = new PBEKeySpec(this.sharedAESsecret.toString().toCharArray(), salt, ITERATIONS, 128);
-        SecretKey tmp = null;
-
-        try {
-            tmp = factory.generateSecret(spec);
-        } catch (InvalidKeySpecException impossible) {
-        }
-
-
-
-        this.sharedAESsecret = tmp.getEncoded();*/
-
-
+        this.sharedsecret = keyHash.digest();
+        this.sharedAESsecret = Arrays.copyOf(this.sharedsecret, this.KEY_LENGTH);
+        this.originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
     }
 
     public boolean isSecurd(){

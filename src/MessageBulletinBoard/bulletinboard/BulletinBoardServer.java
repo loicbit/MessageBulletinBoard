@@ -1,17 +1,18 @@
 package MessageBulletinBoard.bulletinboard;
 
+import MessageBulletinBoard.crypto.AsymEncrypt;
 import MessageBulletinBoard.data.BulletinCell;
 
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import MessageBulletinBoard.bulletinboard.*;
-import MessageBulletinBoard.data.CellPair;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.Signature;
+import MessageBulletinBoard.data.CellPair;
+import org.apache.commons.lang3.SerializationUtils;
+
+import java.security.*;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -21,27 +22,20 @@ public class BulletinBoardServer implements BulletinBoardInterface{
 
     static Registry registry = null;
     private MessageDigest md;
-    private Signature signature = null;
+    private AsymEncrypt asymEncrypt = null;
 
-    private List<String> usedTokens = new LinkedList<>();
+    private List<String> authTokens = new LinkedList<>();
+    private HashMap<String,Key> publickeys = new HashMap<>();
 
-    public BulletinBoardServer() throws NoSuchAlgorithmException {
+    public BulletinBoardServer() throws Exception {
         this.cells = new BulletinCell[NUMBER_CELLS];
         this.md = MessageDigest.getInstance(BulletinBoardInterface.algoMD);
 
         for(int i=0; i< NUMBER_CELLS; i++){
             this.cells[i] = new BulletinCell();
         }
-        initSignature();
+        this.asymEncrypt = new AsymEncrypt();
 
-    }
-
-    private void initSignature() throws NoSuchAlgorithmException {
-        this.signature = Signature.getInstance("SHA256withRSA");
-
-
-        //todo ask pubkey
-        //signature.initVerify(publicKey);
     }
 
     public static void main(String[] args){
@@ -61,6 +55,19 @@ public class BulletinBoardServer implements BulletinBoardInterface{
         }catch (Exception e) {
             System.out.println("BulletinBoard Server failed: " + e);
         }
+    }
+
+    @Override
+    public byte[] initMixedServer(String authToken, byte[] pubKey) throws RemoteException {
+        if(this.verifyAuthToken(authToken)){
+            Key publicKeyOther = SerializationUtils.deserialize(pubKey);
+            this.publickeys.put(authToken, publicKeyOther);
+
+            return this.asymEncrypt.getPublicKeySer();
+        }else{
+            return new byte[0];
+        }
+
     }
 
     @Override
@@ -84,16 +91,17 @@ public class BulletinBoardServer implements BulletinBoardInterface{
         return null;
     }
 
-    @Override
-    public boolean add(int index, String value, String tag, String token) throws RemoteException {
-        if(verifyToken(token)){
-            CellPair newPair = new CellPair(value, tag);
-            this.cells[index].addPair(newPair);
-            return true;
-        }else return false;
+
+    public boolean add(int index, String value, String tag) throws RemoteException {
+        //todo remove token control, done by mixednetwork
+        //if(verifyToken(token)){
+        CellPair newPair = new CellPair(value, tag);
+        this.cells[index].addPair(newPair);
+        return true;
+        //}else return false;
     }
 
-    private boolean verifyToken(String token){
+    private boolean verifyAuthToken(String token){
         return true;
 
         //todo verify

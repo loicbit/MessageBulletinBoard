@@ -105,7 +105,6 @@ public class UserGui {
                 }
             }
 
-
         };
 
         t.schedule(messagePoller, new Date(), 1000);

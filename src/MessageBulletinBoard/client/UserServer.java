@@ -1,9 +1,8 @@
 package MessageBulletinBoard.client;
 
 import MessageBulletinBoard.bulletinboard.BulletinBoardInterface;
-import MessageBulletinBoard.crypto.AssymEncrypt;
+import MessageBulletinBoard.crypto.AsymEncrypt;
 import MessageBulletinBoard.data.CellLocationPair;
-import MessageBulletinBoard.data.State;
 import org.apache.commons.lang3.SerializationUtils;
 
 import java.nio.charset.Charset;
@@ -13,7 +12,6 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.SecureRandom;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.Random;
 
 import java.security.Key;
@@ -25,7 +23,7 @@ public class UserServer implements UserServerInterface{
 
     //private HashMap<String, AssymEncrypt> assymEncrypt= new HashMap<>();
     private HashMap<String, Key> publickeys= new HashMap<>();
-    private AssymEncrypt assymEncrypt;
+    private AsymEncrypt asymEncrypt;
 
     //private HashMap<String, State> firstStates= new HashMap<>();
     //private HashMap<String, Integer> firstStateHashes= new HashMap<>();
@@ -36,7 +34,7 @@ public class UserServer implements UserServerInterface{
     private HashMap<String, CellLocationPair> firsCellsBA = new HashMap();
 
     public UserServer(String nameUser) throws Exception{
-        this.assymEncrypt = new AssymEncrypt();
+        this.asymEncrypt = new AsymEncrypt();
 
         try {
             UserServerInterface stub = (UserServerInterface) UnicastRemoteObject.exportObject(this, 0);
@@ -65,12 +63,12 @@ public class UserServer implements UserServerInterface{
         Key publicKeyOther = SerializationUtils.deserialize(publicKeyStr);
         this.publickeys.put(nameContact, publicKeyOther);
 
-        return this.assymEncrypt.getPublicKeySer();
+        return this.asymEncrypt.getPublicKeySer();
     }
 
     @Override
     public byte[] getFirstCell(byte[] firstCellBA) throws Exception {
-        String decrypted = this.assymEncrypt.do_RSADecryption(firstCellBA);
+        String decrypted = this.asymEncrypt.do_RSADecryption(firstCellBA);
 
         String[] response = decrypted.split(UserServerInterface.DIV_CELL);
         String nameContact = response[0];
@@ -90,7 +88,7 @@ public class UserServer implements UserServerInterface{
 
         //Send the other the first cell to look for
         String newCellABStr = newCellAB.toString();
-        byte[] encrypted = this.assymEncrypt.do_RSAEncryption(newCellABStr, this.publickeys.get(nameContact));
+        byte[] encrypted = this.asymEncrypt.do_RSAEncryption(newCellABStr, this.publickeys.get(nameContact));
 
         return encrypted;
     }
@@ -100,7 +98,7 @@ public class UserServer implements UserServerInterface{
         //todo generate own state
         String sameState = "";
 
-        String decrypted = this.assymEncrypt.do_RSADecryption(hashState);
+        String decrypted = this.asymEncrypt.do_RSADecryption(hashState);
 
         String[] response = decrypted.split(UserServerInterface.DIV_CELL);
         String nameContact = response[0];
@@ -113,7 +111,7 @@ public class UserServer implements UserServerInterface{
         }
 
         //change return to own state
-        byte[] encrypted = this.assymEncrypt.do_RSAEncryption(sameState, this.publickeys.get(nameContact));
+        byte[] encrypted = this.asymEncrypt.do_RSAEncryption(sameState, this.publickeys.get(nameContact));
         return encrypted;
     }
 

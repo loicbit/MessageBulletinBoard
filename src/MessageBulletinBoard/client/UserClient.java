@@ -1,11 +1,9 @@
 package MessageBulletinBoard.client;
 
-import MessageBulletinBoard.authenticationserver.AuthenticationClient;
-import MessageBulletinBoard.bulletinboard.BulletinBoardClient;
 import MessageBulletinBoard.bulletinboard.BulletinBoardInterface;
-import MessageBulletinBoard.crypto.AssymEncrypt;
+import MessageBulletinBoard.crypto.AsymEncrypt;
 import MessageBulletinBoard.data.CellLocationPair;
-import MessageBulletinBoard.authenticationserver.AuthenticationServerInterface;
+import MessageBulletinBoard.mixednetwork.MixedNetworkClient;
 import org.apache.commons.lang3.SerializationUtils;
 
 import java.nio.charset.Charset;
@@ -35,9 +33,9 @@ public class UserClient {
     private String publicKey;
 
     private Key publicKeyOther;
-    AssymEncrypt assymEncrypt;
+    AsymEncrypt asymEncrypt;
 
-    private BulletinBoardClient boardClient;
+    private MixedNetworkClient mixedNetworkClient;
 
 
     private UserServerInterface contactServerStub;
@@ -50,9 +48,9 @@ public class UserClient {
         this.connected = false;
         this.secured = false;
 
-        this.assymEncrypt = new AssymEncrypt();
+        this.asymEncrypt = new AsymEncrypt();
 
-        this.boardClient = new BulletinBoardClient(contact);
+        this.mixedNetworkClient = new MixedNetworkClient(contact);
 
 
         try{
@@ -94,7 +92,7 @@ public class UserClient {
 
             // Setup assymetric communication between the two contacts before exchanging public keys for symmetric
 
-            byte[] publicKeyOtherSerialized =  this.contactServerStub.initContact(this.nameUser, this.assymEncrypt.getPublicKeySer());
+            byte[] publicKeyOtherSerialized =  this.contactServerStub.initContact(this.nameUser, this.asymEncrypt.getPublicKeySer());
             this.publicKeyOther = SerializationUtils.deserialize(publicKeyOtherSerialized);
 
             this.connected = firstCellExchange(this.nameUser);
@@ -106,13 +104,13 @@ public class UserClient {
     }
 
     public void sendPublicKeys() throws RemoteException {
-        this.boardClient.sendPublicKeys();
+        this.mixedNetworkClient.sendPublicKeys();
     }
 
     public boolean sendMessageBoard(String message) throws RemoteException {
         if(isConnected()){
-            if(this.boardClient.isSecured()){
-                this.boardClient.sendMessage(message);
+            if(this.mixedNetworkClient.isSecured()){
+                this.mixedNetworkClient.sendMessage(message);
             }else{
                 sendPublicKeys();
                 //todo; error not secured to send
@@ -128,7 +126,7 @@ public class UserClient {
     public String getMessageBoard() throws RemoteException {
         //todo check if it is not publickeys
         if(isConnected()){
-            return this.boardClient.getMessage();
+            return this.mixedNetworkClient.getMessage();
         }else {
             //todo print error message
             return null;
@@ -137,25 +135,25 @@ public class UserClient {
 
     public boolean firstCellExchange(String nameContact) throws Exception {
         CellLocationPair firstCellSend = generateNewCell();
-        this.boardClient.setNextCellLocationPairAB(firstCellSend);
+        this.mixedNetworkClient.setNextCellLocationPairAB(firstCellSend);
 
         //byte[] cellSerialized = SerializationUtils.serialize(firstCellSend);
         String nameAndCell = nameContact + UserServerInterface.DIV_CELL+ firstCellSend.toString();
-        byte[] nameAndCellEncrypted = this.assymEncrypt.do_RSAEncryption(nameAndCell, this.publicKeyOther);
+        byte[] nameAndCellEncrypted = this.asymEncrypt.do_RSAEncryption(nameAndCell, this.publicKeyOther);
 
         byte[] firstCellGetEncrypted = this.contactServerStub.getFirstCell(nameAndCellEncrypted);
-        String firstCellGet = this.assymEncrypt.do_RSADecryption(firstCellGetEncrypted);
+        String firstCellGet = this.asymEncrypt.do_RSADecryption(firstCellGetEncrypted);
 
         CellLocationPair firstCellReceive = new CellLocationPair(firstCellGet);
-        this.boardClient.setNextCellLocationPairBA(firstCellReceive);
+        this.mixedNetworkClient.setNextCellLocationPairBA(firstCellReceive);
 
         if(firstCellReceive != null) return true;
         else return false;
     }
 
     public void setFirstCellPair(CellLocationPair cellAB, CellLocationPair cellBA){
-        this.boardClient.setNextCellLocationPairAB(cellAB);
-        this.boardClient.setNextCellLocationPairBA(cellBA);
+        this.mixedNetworkClient.setNextCellLocationPairAB(cellAB);
+        this.mixedNetworkClient.setNextCellLocationPairBA(cellBA);
 
         this.connected = true;
     }
@@ -176,7 +174,7 @@ public class UserClient {
     }
 
     public boolean isConnected(){
-        return this.boardClient.isConnected();
+        return this.mixedNetworkClient.isConnected();
         //return this.connected;
     }
 

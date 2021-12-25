@@ -8,14 +8,14 @@ import java.util.HashMap;
 
 //todo: change key serialisation
 // https://docs.oracle.com/javase/7/docs/api/java/security/KeyFactory.html
-public class AssymEncrypt {
+public class AsymEncrypt {
     private static final String RSA
             = "RSA";
     private KeyPair keypair = null;
 
     private HashMap<String, Key> publicKeysContacts = new HashMap<>();
 
-    public AssymEncrypt() throws Exception {
+    public AsymEncrypt() throws Exception {
         this.keypair = generateRSAKkeyPair();
     }
 

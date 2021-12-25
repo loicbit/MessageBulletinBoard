@@ -4,8 +4,8 @@ import java.rmi.*;
 
 public interface BulletinBoardInterface extends Remote{
     String get(int i, String b) throws RemoteException;
-    boolean add(int index, String value, String tag, String token) throws RemoteException;
-
+    boolean add(int index, String value, String tag) throws RemoteException;
+    byte[] initMixedServer(String authToken, byte[] pubKey) throws RemoteException;
     int NUMBER_CELLS = 100;
 
     //todo replace the param:
@@ -20,6 +20,4 @@ public interface BulletinBoardInterface extends Remote{
     String keyDIV = "DIVK";
 
     String algoMD = "SHA-256";
-
-    //public void initReceiver(BulletinBoardInterface c)throws RemoteException;
 }
