@@ -46,8 +46,6 @@ public class MixedNetworkClient {
         this.diffiehAB = new DiffieH();
         this.diffiehBA = new DiffieH();
 
-        //this.randomSeedKDF =
-
         try{
             this.registry = LocateRegistry.createRegistry(BulletinBoardInterface.REG_PORT);
         }catch(Exception e) {
@@ -111,20 +109,19 @@ public class MixedNetworkClient {
         }
     }
 
-    //todo change name
     public void sendCryptoKeys() throws RemoteException{
         CellLocationPair locationCurrentMessage = this.nextCellLocationPairAB;
 
         String publicKeyAB = this.diffiehAB.getPubKey();
         String publicKeyBA = this.diffiehBA.getPubKey();
 
-        //String randomSeedKDFString = Integer.toString(this.randomSeedKDF);
-        String randomSeedKDFString =  "";
+        String randomSeedKDFString = Integer.toString(this.diffiehAB.getSeed());
+        //String randomSeedKDFString =  "";
 
         if(locationCurrentMessage != null){
             //String token = getToken();
             String token = "dummy";
-            String message = publicKeyAB + BulletinBoardInterface.keyDIV + publicKeyBA + BulletinBoardInterface.keyDIV + ;
+            String message = publicKeyAB + BulletinBoardInterface.keyDIV + publicKeyBA + BulletinBoardInterface.keyDIV + randomSeedKDFString;
             String[] messageTagPair = prepareMessage(message, locationCurrentMessage);
 
 
@@ -154,6 +151,9 @@ public class MixedNetworkClient {
                     String message =  splitUMessage(uMessage);
                     String[] split = message.split(BulletinBoardInterface.keyDIV);
                     setPublicKeysContact(split[1], split[0]);
+                    int seedBA = Integer.valueOf(split[2]);
+
+                    this.diffiehBA.setSeed(seedBA);
 
                     // In case publickeys not yet send, send them
                     if(!this.publicKeysSend) sendCryptoKeys();

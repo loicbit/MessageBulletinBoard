@@ -13,8 +13,8 @@ public class testCrypto {
 
         byte [] salt = generateSalt();
 
-        diffieA.setSalt(salt);
-        diffieB.setSalt(salt);
+        //diffieA.setSalt(salt);
+        //diffieB.setSalt(salt);
 
         String pubkeyA = diffieA.getPubKey();
         String pubkeyB = diffieB.getPubKey();
@@ -25,6 +25,9 @@ public class testCrypto {
 
         diffieA.generateSecretKey(pubkeyB);
         diffieB.generateSecretKey(pubkeyA);
+
+        int seed = diffieA.getSeed();
+        diffieB.setSeed(seed);
 
         String result = diffieA.encrypt("test_1");
         System.out.println(diffieB.decrypt(result));

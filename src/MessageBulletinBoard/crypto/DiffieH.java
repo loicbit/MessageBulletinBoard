@@ -1,17 +1,13 @@
 package MessageBulletinBoard.crypto;
 
 import javax.crypto.*;
-import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class DiffieH {
     //private KeyPairGenerator kPairGen;
@@ -51,20 +47,23 @@ public class DiffieH {
 
     public byte[] secretKeyPBE;
 
-    SecureRandom randomSalt;
-    byte[] salt;
+    private Random randomSeedGenerator;
+    private Random randomByteGenerator;
+    private int seed;
+    private int LENGTH_RANDOM_BYTES = 12;
 
     private PublicKey publickeyOther;
+
 
     public DiffieH() throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
         //todo: Generate seed and replace if necessary
         generatePublicKey();
 
-        SecureRandom seedGen = new SecureRandom();
-        int seed = 0;
+        this.randomSeedGenerator = new Random();
+        this.seed = this.randomSeedGenerator.nextInt();
 
-        this.randomSalt = new SecureRandom();
-        this.randomSalt.setSeed(12345);
+        this.randomByteGenerator = new Random();
+        this.randomByteGenerator.setSeed(this.seed);
     }
 
     private void generatePublicKey() {
@@ -141,24 +140,20 @@ public class DiffieH {
         return Base64.getEncoder().encodeToString(byte_pubkey);
     }
 
-    /*public void setRandomSeed(byte[] seedSalt){
-        this.randomSalt = new SecureRandom(seedSalt);
-    }*/
-
-    public void setRandomSeed(){
-        //this.randomSalt = new SecureRandom(seedSalt);
+    public int getSeed(){
+        return this.seed;
     }
 
-    public void setSalt(byte[] salt){
-        this.salt = salt;
-    }
-    /*private byte[] generateRandomSeed(){
-        //return getSecureRandomSeed();
-    }*/
+    public void setSeed(int seed){
+       this.seed = seed;
 
-    private byte[] generateSalt(){
-        byte[] saltTemp = new byte[this.SALT_LENGTH];
-        this.randomSalt.nextBytes(saltTemp);
+       this.randomByteGenerator = new Random();
+       this.randomByteGenerator.setSeed(seed);
+    }
+
+    private byte[] generatRandomBytes(){
+        byte[] saltTemp = new byte[this.LENGTH_RANDOM_BYTES];
+        this.randomByteGenerator.nextBytes(saltTemp);
         return saltTemp;
     }
 
@@ -169,12 +164,15 @@ public class DiffieH {
         MessageDigest keyHash = MessageDigest.getInstance("SHA-256");
         keyHash.update(this.sharedAESsecret);
 
+        byte[] randomSeed = this.generatRandomBytes();
+
         // Sort to have the same order for A and B
-        List<ByteBuffer> keys = Arrays.asList(ByteBuffer.wrap(this.publickey.getEncoded()), ByteBuffer.wrap(this.publickeyOther.getEncoded()));
+        List<ByteBuffer> keys = Arrays.asList(ByteBuffer.wrap(this.publickey.getEncoded()), ByteBuffer.wrap(this.publickeyOther.getEncoded()), ByteBuffer.wrap(randomSeed));
         Collections.sort(keys);
 
         keyHash.update(keys.get(0));
         keyHash.update(keys.get(1));
+        keyHash.update(keys.get(2));
 
         this.sharedsecret = keyHash.digest();
         this.sharedAESsecret = Arrays.copyOf(this.sharedsecret, this.KEY_LENGTH);
