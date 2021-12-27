@@ -36,6 +36,8 @@ public class MixedNetworkClient {
     private DiffieH diffiehAB;
     private DiffieH diffiehBA;
 
+
+
     public MixedNetworkClient(String nameUser) throws Exception {
         this.nameUser = nameUser;
         this.tokens = new LinkedList<>();
@@ -43,6 +45,8 @@ public class MixedNetworkClient {
 
         this.diffiehAB = new DiffieH();
         this.diffiehBA = new DiffieH();
+
+        //this.randomSeedKDF =
 
         try{
             this.registry = LocateRegistry.createRegistry(BulletinBoardInterface.REG_PORT);
@@ -57,6 +61,7 @@ public class MixedNetworkClient {
         }
 
         this.md = MessageDigest.getInstance(BulletinBoardInterface.algoMD);
+        this.initMixedNetwork();
     }
 
     public void initMixedNetwork() throws RemoteException {
@@ -85,7 +90,7 @@ public class MixedNetworkClient {
         // In case publickeys not yet send, send them
         if(!this.publicKeysSend){
             //this.generateStateHashAB();
-            sendPublicKeys();
+            sendCryptoKeys();
         }
 
         CellLocationPair locationCurrentMessage = this.nextCellLocationPairAB;
@@ -107,16 +112,19 @@ public class MixedNetworkClient {
     }
 
     //todo change name
-    public void sendPublicKeys() throws RemoteException{
+    public void sendCryptoKeys() throws RemoteException{
         CellLocationPair locationCurrentMessage = this.nextCellLocationPairAB;
 
         String publicKeyAB = this.diffiehAB.getPubKey();
         String publicKeyBA = this.diffiehBA.getPubKey();
 
+        //String randomSeedKDFString = Integer.toString(this.randomSeedKDF);
+        String randomSeedKDFString =  "";
+
         if(locationCurrentMessage != null){
             //String token = getToken();
             String token = "dummy";
-            String message = publicKeyAB + BulletinBoardInterface.keyDIV + publicKeyBA;
+            String message = publicKeyAB + BulletinBoardInterface.keyDIV + publicKeyBA + BulletinBoardInterface.keyDIV + ;
             String[] messageTagPair = prepareMessage(message, locationCurrentMessage);
 
 
@@ -148,7 +156,7 @@ public class MixedNetworkClient {
                     setPublicKeysContact(split[1], split[0]);
 
                     // In case publickeys not yet send, send them
-                    if(!this.publicKeysSend) sendPublicKeys();
+                    if(!this.publicKeysSend) sendCryptoKeys();
 
                 }else{
                     String message =  this.diffiehBA.decrypt(uMessage);

@@ -104,7 +104,7 @@ public class UserClient {
     }
 
     public void sendPublicKeys() throws RemoteException {
-        this.mixedNetworkClient.sendPublicKeys();
+        this.mixedNetworkClient.sendCryptoKeys();
     }
 
     public boolean sendMessageBoard(String message) throws RemoteException {

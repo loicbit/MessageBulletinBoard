@@ -57,8 +57,11 @@ public class DiffieH {
     private PublicKey publickeyOther;
 
     public DiffieH() throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-        //this.generatePublicKey();
+        //todo: Generate seed and replace if necessary
         generatePublicKey();
+
+        SecureRandom seedGen = new SecureRandom();
+        int seed = 0;
 
         this.randomSalt = new SecureRandom();
         this.randomSalt.setSeed(12345);
