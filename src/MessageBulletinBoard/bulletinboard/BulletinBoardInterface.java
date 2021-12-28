@@ -3,8 +3,8 @@ package MessageBulletinBoard.bulletinboard;
 import java.rmi.*;
 
 public interface BulletinBoardInterface extends Remote{
-    String get(int i, String b) throws RemoteException;
-    boolean add(int index, String value, String tag) throws RemoteException;
+    byte[] get(byte[] i, byte[] b, byte[] authToken) throws Exception;
+    void add(byte[] index, byte[] value, byte[] tag) throws RemoteException, Exception;
     byte[] initMixedServer(String authToken, byte[] pubKey) throws RemoteException;
     int NUMBER_CELLS = 100;
 
@@ -20,4 +20,6 @@ public interface BulletinBoardInterface extends Remote{
     String keyDIV = "DIVK";
 
     String algoMD = "SHA-256";
+    byte [] emptyMessage = new byte[1];
 }
+

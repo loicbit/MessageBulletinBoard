@@ -103,11 +103,11 @@ public class UserClient {
         else return null;
     }
 
-    public void sendPublicKeys() throws RemoteException {
+    public void sendPublicKeys() throws Exception {
         this.mixedNetworkClient.sendCryptoKeys();
     }
 
-    public boolean sendMessageBoard(String message) throws RemoteException {
+    public boolean sendMessageBoard(String message) throws Exception {
         if(isConnected()){
             if(this.mixedNetworkClient.isSecured()){
                 this.mixedNetworkClient.sendMessage(message);
@@ -123,7 +123,7 @@ public class UserClient {
         return false;
     }
 
-    public String getMessageBoard() throws RemoteException {
+    public String getMessageBoard() throws Exception {
         //todo check if it is not publickeys
         if(isConnected()){
             return this.mixedNetworkClient.getMessage();

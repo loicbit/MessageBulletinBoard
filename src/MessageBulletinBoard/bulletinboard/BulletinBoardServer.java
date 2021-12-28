@@ -27,6 +27,8 @@ public class BulletinBoardServer implements BulletinBoardInterface{
     private List<String> authTokens = new LinkedList<>();
     private HashMap<String,Key> publickeys = new HashMap<>();
 
+    private Key publickeyOther;
+
     public BulletinBoardServer() throws Exception {
         this.cells = new BulletinCell[NUMBER_CELLS];
         this.md = MessageDigest.getInstance(BulletinBoardInterface.algoMD);
@@ -60,24 +62,32 @@ public class BulletinBoardServer implements BulletinBoardInterface{
     @Override
     public byte[] initMixedServer(String authToken, byte[] pubKey) throws RemoteException {
         if(this.verifyAuthToken(authToken)){
-            Key publicKeyOther = SerializationUtils.deserialize(pubKey);
-            this.publickeys.put(authToken, publicKeyOther);
+            Key publicKeyOtherTemp = SerializationUtils.deserialize(pubKey);
+
+            this.publickeyOther = SerializationUtils.deserialize(pubKey);
+            this.publickeys.put(authToken, publicKeyOtherTemp);
 
             return this.asymEncrypt.getPublicKeySer();
         }else{
-            return new byte[0];
+            return BulletinBoardInterface.emptyMessage;
         }
 
     }
 
     @Override
-    public String get(int i, String b) throws RemoteException {
+    public byte[] get(byte[] indexEnc, byte[] tagEnc, byte[] authTokenEnc) throws Exception {
+        String indexStr = this.asymEncrypt.do_RSADecryption(indexEnc);
+        String tag = this.asymEncrypt.do_RSADecryption(tagEnc);
+        String authToken = this.asymEncrypt.do_RSADecryption(authTokenEnc);
+
+        int index = Integer.parseInt(indexStr);
+
         String message = null;
         CellPair toRemove = null;
 
-        String hashB = new String(md.digest(b.getBytes()));
+        String hashB = new String(md.digest(tag.getBytes()));
 
-        for (CellPair pair : this.cells[i].getCellPairs()) {
+        for (CellPair pair : this.cells[index].getCellPairs()) {
             if (pair.getTag().equals(hashB)) {
                 message = pair.getValue();
                 toRemove = pair;
@@ -85,20 +95,28 @@ public class BulletinBoardServer implements BulletinBoardInterface{
         }
 
         if (toRemove != null) {
-            this.cells[i].removePair(toRemove);
-            return message;
+            this.cells[index].removePair(toRemove);
+            try {
+                return this.asymEncrypt.do_RSAEncryption(message, this.publickeyOther);
+            } catch (Exception e){
+                System.out.println(e);
+            }
+
+            //return this.asymEncrypt.do_RSAEncryption(message, this.publickeys.get(authToken));
         }
-        return null;
+        return BulletinBoardInterface.emptyMessage;
     }
 
 
-    public boolean add(int index, String value, String tag) throws RemoteException {
-        //todo remove token control, done by mixednetwork
-        //if(verifyToken(token)){
+    public void add(byte[] indexEnc, byte[] valueEnc, byte[]tagEnc) throws Exception {
+        String indexStr = this.asymEncrypt.do_RSADecryption(indexEnc);
+        String value = this.asymEncrypt.do_RSADecryption(valueEnc);
+        String tag = this.asymEncrypt.do_RSADecryption(tagEnc);
+
+        int index = Integer.parseInt(indexStr);
+
         CellPair newPair = new CellPair(value, tag);
         this.cells[index].addPair(newPair);
-        return true;
-        //}else return false;
     }
 
     private boolean verifyAuthToken(String token){

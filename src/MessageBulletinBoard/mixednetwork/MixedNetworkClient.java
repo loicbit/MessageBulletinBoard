@@ -23,7 +23,7 @@ public class MixedNetworkClient {
     private Registry registry;
     private String nameUser;
     private AsymEncrypt asymEncrypt;
-    private Key publicKeyTokenServer;
+    private Key publicKeyMixedServer;
 
     private MessageDigest md;
 
@@ -67,7 +67,7 @@ public class MixedNetworkClient {
         byte[] publicKeyUserSer = this.asymEncrypt.getPublicKeySer();
 
         byte[] publicKeyOtherSer = this.mixedNetworkServerStub.initContact(this.nameUser, publicKeyUserSer);
-        this.publicKeyTokenServer = SerializationUtils.deserialize(publicKeyOtherSer);
+        this.publicKeyMixedServer = SerializationUtils.deserialize(publicKeyOtherSer);
     }
 
     private boolean verifyTokens(List<byte[]> tokens){
@@ -84,7 +84,7 @@ public class MixedNetworkClient {
         this.nextCellLocationPairBA = next;
     }
 
-    public void sendMessage(String message) throws RemoteException {
+    public void sendMessage(String message) throws Exception {
         // In case publickeys not yet send, send them
         if(!this.publicKeysSend){
             //this.generateStateHashAB();
@@ -103,20 +103,24 @@ public class MixedNetworkClient {
             String[] messageTagPair = prepareMessage(message, locationCurrentMessage);
             String encryptedMessage = this.diffiehAB.encrypt(messageTagPair[0]);
 
-            this.mixedNetworkServerStub.add(locationCurrentMessage.getIndex(), encryptedMessage, messageTagPair[1], token);
+            byte[] indexEnc = this.asymEncrypt.do_RSAEncryption(Integer.toString(locationCurrentMessage.getIndex()), this.publicKeyMixedServer);
+            byte[] encryptedMessageEnc = this.asymEncrypt.do_RSAEncryption(encryptedMessage, this.publicKeyMixedServer);
+            byte[] tagEnc = this.asymEncrypt.do_RSAEncryption(messageTagPair[1], this.publicKeyMixedServer);
+            byte[] tokenEnc = this.asymEncrypt.do_RSAEncryption(token, this.publicKeyMixedServer);
+
+            this.mixedNetworkServerStub.add(indexEnc, encryptedMessageEnc, tagEnc, tokenEnc);
         }else{
             throw new NullPointerException("First cell not yet initialised");
         }
     }
 
-    public void sendCryptoKeys() throws RemoteException{
+    public void sendCryptoKeys() throws Exception{
         CellLocationPair locationCurrentMessage = this.nextCellLocationPairAB;
 
         String publicKeyAB = this.diffiehAB.getPubKey();
         String publicKeyBA = this.diffiehBA.getPubKey();
 
         String randomSeedKDFString = Integer.toString(this.diffiehAB.getSeed());
-        //String randomSeedKDFString =  "";
 
         if(locationCurrentMessage != null){
             //String token = getToken();
@@ -124,8 +128,12 @@ public class MixedNetworkClient {
             String message = publicKeyAB + BulletinBoardInterface.keyDIV + publicKeyBA + BulletinBoardInterface.keyDIV + randomSeedKDFString;
             String[] messageTagPair = prepareMessage(message, locationCurrentMessage);
 
+            byte[] indexEnc = this.asymEncrypt.do_RSAEncryption(Integer.toString(locationCurrentMessage.getIndex()), this.publicKeyMixedServer);
+            byte[] valueEnc = this.asymEncrypt.do_RSAEncryption(messageTagPair[0], this.publicKeyMixedServer);
+            byte[] tagEnc = this.asymEncrypt.do_RSAEncryption(messageTagPair[1], this.publicKeyMixedServer);
+            byte[] tokenEnc = this.asymEncrypt.do_RSAEncryption(token, this.publicKeyMixedServer);
 
-            this.mixedNetworkServerStub.add(locationCurrentMessage.getIndex(), messageTagPair[0], messageTagPair[1], token);
+            this.mixedNetworkServerStub.add(indexEnc, valueEnc, tagEnc, tokenEnc);
         } else{
             throw new NullPointerException("First cell not yet initialised");
         }
@@ -138,15 +146,22 @@ public class MixedNetworkClient {
         this.diffiehBA.generateSecretKey(publicKeyContactBA);
     }
 
-    public String getMessage() throws RemoteException {
+    public String getMessage() throws Exception {
         // todo: get token
         if (this.nextCellLocationPairBA != null) {
             CellLocationPair nextLocation = this.nextCellLocationPairBA;
             String token="";
 
-            String uMessage = this.mixedNetworkServerStub.get(nextLocation.getIndex(), nextLocation.getTag(), token);
+            byte[] indexEnc = this.asymEncrypt.do_RSAEncryption(Integer.toString(nextLocation.getIndex()), this.publicKeyMixedServer);
+            byte[] tagEnc = this.asymEncrypt.do_RSAEncryption(nextLocation.getTag(), this.publicKeyMixedServer);
 
-            if(uMessage != null){
+            byte[] tokenEnc = this.asymEncrypt.do_RSAEncryption(token, this.publicKeyMixedServer);
+            byte[] nameUserEnc = this.asymEncrypt.do_RSAEncryption(this.nameUser, this.publicKeyMixedServer);
+
+            byte[] uMessageEnc = this.mixedNetworkServerStub.get(indexEnc, tagEnc, tokenEnc, nameUserEnc);
+
+            if(uMessageEnc.length>1){
+                String uMessage = this.asymEncrypt.do_RSADecryption(uMessageEnc);
                 if(!isSecured()){
                     String message =  splitUMessage(uMessage);
                     String[] split = message.split(BulletinBoardInterface.keyDIV);

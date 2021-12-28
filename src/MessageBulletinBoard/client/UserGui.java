@@ -74,7 +74,7 @@ public class UserGui {
                 String currentContact = String.valueOf(comboBoxContacts.getSelectedItem());
                 try {
                     sendMessage(currentContact, textFieldMessage.getText());
-                } catch (RemoteException ex) {
+                } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
@@ -100,7 +100,7 @@ public class UserGui {
                 String currentContact = String.valueOf(comboBoxContacts.getSelectedItem());
                 try {
                     getMessage(currentContact);
-                } catch (RemoteException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -175,7 +175,7 @@ public class UserGui {
         }
     }
 
-    private void sendMessage(String name, String message) throws RemoteException {
+    private void sendMessage(String name, String message) throws Exception {
         //todo handle null client
         if(this.userClient.containsKey(name) && this.userClient.get(name).isConnected()){
             //this.to
@@ -189,7 +189,7 @@ public class UserGui {
         }
     }
 
-    private void getMessage(String name) throws RemoteException {
+    private void getMessage(String name) throws Exception {
         String currentConv = "";
 
         if(this.userClient.containsKey(name) && this.isConnected(name)){

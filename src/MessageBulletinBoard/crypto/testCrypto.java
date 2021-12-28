@@ -11,6 +11,8 @@ public class testCrypto {
         DiffieH diffieA = new DiffieH();
         DiffieH diffieB = new DiffieH();
 
+        byte [] empty = new byte[1];
+
         byte [] salt = generateSalt();
 
         //diffieA.setSalt(salt);

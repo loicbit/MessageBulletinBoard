@@ -1,6 +1,7 @@
 package MessageBulletinBoard.mixednetwork;
 
 import MessageBulletinBoard.bulletinboard.BulletinBoardClient;
+import MessageBulletinBoard.bulletinboard.BulletinBoardInterface;
 import MessageBulletinBoard.crypto.AsymEncrypt;
 import org.apache.commons.lang3.SerializationUtils;
 
@@ -67,19 +68,39 @@ public class MixedNetworkServer implements MixedNetworkServerInterface {
     }
 
     @Override
-    public String get(int i, String b, String token) throws RemoteException {
+    public byte[] get(byte[] indexEnc, byte[] tagEnc, byte[] tokenEnc, byte[] nameUserEnc) throws Exception {
+        String token = this.asymEncrypt.do_RSADecryption(tokenEnc);
+
         if(verifyToken(token)){
-            return this.bulletinBoardClient.get(i, b);
+            String indexStr = this.asymEncrypt.do_RSADecryption(indexEnc);
+            String tag = this.asymEncrypt.do_RSADecryption(tagEnc);
+            String nameUser = this.asymEncrypt.do_RSADecryption(nameUserEnc);
+
+            int index = Integer.parseInt(indexStr);
+
+            String message = this.bulletinBoardClient.get(index, tag);
+
+            if(message!=null){
+                return this.asymEncrypt.do_RSAEncryption(message, this.publickeys.get(nameUser));
+            }
+            return BulletinBoardInterface.emptyMessage;
+
         }
-        return null;
+        return BulletinBoardInterface.emptyMessage;
     }
 
     @Override
-    public boolean add(int index, String value, String tag, String token) throws RemoteException {
+    public void add(byte[] indexEnc, byte[] valueEnc, byte[] tagEnc, byte[] tokenEnc) throws Exception {
+        String indexStr = this.asymEncrypt.do_RSADecryption(indexEnc);
+        String value = this.asymEncrypt.do_RSADecryption(valueEnc);
+        String tag = this.asymEncrypt.do_RSADecryption(tagEnc);
+        String token = this.asymEncrypt.do_RSADecryption(tokenEnc);
+
+        int index = Integer.parseInt(indexStr);
+
         if(verifyToken(token)){
             this.bulletinBoardClient.add(index,value,tag);
         }
-        return false;
     }
 
     private void connectBulletinBoard() throws Exception {

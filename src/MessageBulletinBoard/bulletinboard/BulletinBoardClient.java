@@ -35,6 +35,8 @@ public class BulletinBoardClient {
 
     private Key publicKeyOther;
 
+    private String authToken;
+
     // todo generate hash of the state
 
     //todo connection with mixed network
@@ -51,11 +53,13 @@ public class BulletinBoardClient {
 
         this.bulletinServerStub = (BulletinBoardInterface) this.registry.lookup(BulletinBoardInterface.STUB_NAME);
         this.md = MessageDigest.getInstance(BulletinBoardInterface.algoMD);
+
+        this.authToken="";
         this.connectToBulletin();
     }
 
     public void connectToBulletin() throws RemoteException {
-        String authToken="";
+
 
         byte[] publicKeyOtherSerialized =  this.bulletinServerStub.initMixedServer(authToken, this.asymEncrypt.getPublicKeySer());
         this.publicKeyOther = SerializationUtils.deserialize(publicKeyOtherSerialized);
@@ -67,15 +71,29 @@ public class BulletinBoardClient {
         byte[] emptyResponse = new byte[0];
 
     }*/
-    public boolean add(int index, String value, String tag) throws RemoteException{
-        //todo check secure channel
-        this.bulletinServerStub.add(index, value, tag);
-        return false;
+    public void add(int index, String value, String tag) throws Exception{
+        //todo decrypt
+
+        byte[] indexEnc =  this.asymEncrypt.do_RSAEncryption(Integer.toString(index), this.publicKeyOther);
+        byte[] valueEnc =  this.asymEncrypt.do_RSAEncryption(value, this.publicKeyOther);
+        byte[] tagEnc =  this.asymEncrypt.do_RSAEncryption(tag, this.publicKeyOther);
+
+        this.bulletinServerStub.add(indexEnc, valueEnc, tagEnc);
     }
 
-    public String get(int i, String b) throws RemoteException{
+    public String get(int index, String tag) throws Exception{
+        byte[] indexEnc =  this.asymEncrypt.do_RSAEncryption(Integer.toString(index), this.publicKeyOther);
+        byte[] tagEnc =  this.asymEncrypt.do_RSAEncryption(tag, this.publicKeyOther);
+        byte[] authEnc =  this.asymEncrypt.do_RSAEncryption(tag, this.publicKeyOther);
+
         //todo check secure channel
-        return this.bulletinServerStub.get(i, b);
+        byte[] messageEnc = this.bulletinServerStub.get(indexEnc, tagEnc, authEnc);
+
+
+        if (messageEnc.length < 2){
+            return null;
+        }
+        else return this.asymEncrypt.do_RSADecryption(messageEnc);
     }
 
     /*public getPublicKey(){
