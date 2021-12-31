@@ -59,7 +59,7 @@ public class CellLocationPair implements Serializable {
 
     @Override
     public String toString() {
-        return index +  CellLocationPair.divider + tag;
+        return index +  CellLocationPair.divider + this.tag;
     }
 
     public String getHash(){
@@ -80,6 +80,7 @@ public class CellLocationPair implements Serializable {
         } catch (Exception e) {
             throw new IllegalArgumentException(obj + " is not a valid CellLocationPair.");
         }
+
 
         return this.index == pairToCompare.getIndex() && new String(this.tag).equals(new String(pairToCompare.getTag()));
     }

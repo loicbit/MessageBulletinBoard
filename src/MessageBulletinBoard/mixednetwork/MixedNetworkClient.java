@@ -3,9 +3,13 @@ package MessageBulletinBoard.mixednetwork;
 import MessageBulletinBoard.bulletinboard.BulletinBoardInterface;
 import MessageBulletinBoard.crypto.AsymEncrypt;
 import MessageBulletinBoard.crypto.DiffieH;
+import MessageBulletinBoard.data.COM_DIR;
 import MessageBulletinBoard.data.CellLocationPair;
+import MessageBulletinBoard.data.INFO_MESSAGE;
 import org.apache.commons.lang3.SerializationUtils;
 
+import javax.crypto.SecretKey;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
@@ -13,9 +17,8 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.security.Key;
 import java.security.MessageDigest;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 
 public class MixedNetworkClient {
     private List<byte []> tokens;
@@ -100,6 +103,8 @@ public class MixedNetworkClient {
             //String token = getToken();
             //todo get token
             String token = "dummy";
+            byte[] hashAB = this.getHash(COM_DIR.AB);
+
             String[] messageTagPair = prepareMessage(message, locationCurrentMessage);
             String encryptedMessage = this.diffiehAB.encrypt(messageTagPair[0]);
 
@@ -107,8 +112,9 @@ public class MixedNetworkClient {
             byte[] encryptedMessageEnc = this.asymEncrypt.do_RSAEncryption(encryptedMessage, this.publicKeyMixedServer);
             byte[] tagEnc = this.asymEncrypt.do_RSAEncryption(messageTagPair[1], this.publicKeyMixedServer);
             byte[] tokenEnc = this.asymEncrypt.do_RSAEncryption(token, this.publicKeyMixedServer);
+            byte[] hashABEnc = this.asymEncrypt.do_RSAEncryption(new String(hashAB), this.publicKeyMixedServer);
 
-            this.mixedNetworkServerStub.add(indexEnc, encryptedMessageEnc, tagEnc, tokenEnc);
+            this.mixedNetworkServerStub.add(indexEnc, encryptedMessageEnc, tagEnc, tokenEnc, hashABEnc);
         }else{
             throw new NullPointerException("First cell not yet initialised");
         }
@@ -125,6 +131,8 @@ public class MixedNetworkClient {
         if(locationCurrentMessage != null){
             //String token = getToken();
             String token = "dummy";
+            byte[] hashAB = this.getHash(COM_DIR.AB);
+
             String message = publicKeyAB + BulletinBoardInterface.keyDIV + publicKeyBA + BulletinBoardInterface.keyDIV + randomSeedKDFString;
             String[] messageTagPair = prepareMessage(message, locationCurrentMessage);
 
@@ -132,8 +140,9 @@ public class MixedNetworkClient {
             byte[] valueEnc = this.asymEncrypt.do_RSAEncryption(messageTagPair[0], this.publicKeyMixedServer);
             byte[] tagEnc = this.asymEncrypt.do_RSAEncryption(messageTagPair[1], this.publicKeyMixedServer);
             byte[] tokenEnc = this.asymEncrypt.do_RSAEncryption(token, this.publicKeyMixedServer);
+            byte[] hashABEnc = this.asymEncrypt.do_RSAEncryption(new String(hashAB), this.publicKeyMixedServer);
 
-            this.mixedNetworkServerStub.add(indexEnc, valueEnc, tagEnc, tokenEnc);
+            this.mixedNetworkServerStub.add(indexEnc, valueEnc, tagEnc, tokenEnc, hashABEnc);
         } else{
             throw new NullPointerException("First cell not yet initialised");
         }
@@ -149,6 +158,8 @@ public class MixedNetworkClient {
     public String getMessage() throws Exception {
         // todo: get token
         if (this.nextCellLocationPairBA != null) {
+            byte[] hashBA = this.getHash(COM_DIR.BA);
+
             CellLocationPair nextLocation = this.nextCellLocationPairBA;
             String token="";
 
@@ -157,8 +168,9 @@ public class MixedNetworkClient {
 
             byte[] tokenEnc = this.asymEncrypt.do_RSAEncryption(token, this.publicKeyMixedServer);
             byte[] nameUserEnc = this.asymEncrypt.do_RSAEncryption(this.nameUser, this.publicKeyMixedServer);
+            byte[] hashEnc = this.asymEncrypt.do_RSAEncryption(hashBA, this.publicKeyMixedServer);
 
-            byte[] uMessageEnc = this.mixedNetworkServerStub.get(indexEnc, tagEnc, tokenEnc, nameUserEnc);
+            byte[] uMessageEnc = this.mixedNetworkServerStub.get(indexEnc, tagEnc, tokenEnc, hashEnc,nameUserEnc);
 
             if(uMessageEnc.length>1){
                 String uMessage = this.asymEncrypt.do_RSADecryption(uMessageEnc);
@@ -241,7 +253,41 @@ public class MixedNetworkClient {
         }
     }*/
 
-    private byte[] getHashBA(){
-        return this.nextCellLocationPairBA.getHash().getBytes(StandardCharsets.UTF_8);
+    private byte[] getHash(COM_DIR direction) throws NoSuchAlgorithmException{
+        CellLocationPair locPair = null;
+        SecretKey sharedKey = null;
+
+        if(direction == COM_DIR.AB){
+            locPair = this.nextCellLocationPairAB;
+            sharedKey = this.diffiehAB.getSharedKey();
+        }
+        else if(direction == COM_DIR.BA){
+            locPair = this.nextCellLocationPairBA;
+            sharedKey = this.diffiehBA.getSharedKey();
+        }
+        else return BulletinBoardInterface.emptyMessage;
+
+        MessageDigest keyHash = MessageDigest.getInstance("SHA-256");
+
+        String index = Integer.toString(locPair.getIndex());
+        String tag = locPair.getTag();
+
+        byte[] key = null;
+
+
+        if(sharedKey == null || !this.publicKeysSend){
+            key = INFO_MESSAGE.NO_KEY.name().getBytes();
+        }else{
+            key = sharedKey.getEncoded();
+        }
+        // Sort to have the same order for A and B
+        List<ByteBuffer> keys = Arrays.asList(ByteBuffer.wrap(index.getBytes()), ByteBuffer.wrap(tag.getBytes()), ByteBuffer.wrap(key));
+        Collections.sort(keys);
+
+        keyHash.update(keys.get(0));
+        keyHash.update(keys.get(1));
+        keyHash.update(keys.get(2));
+
+        return keyHash.digest();
     }
 }

@@ -179,7 +179,12 @@ public class DiffieH {
         this.originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
     }
 
+    public SecretKey getSharedKey(){
+        return this.originalKey;
+    }
     public boolean isSecurd(){
         return this.publickey != null && this.sharedsecret != null;
     }
+
+
 }

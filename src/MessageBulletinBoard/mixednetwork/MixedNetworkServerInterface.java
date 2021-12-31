@@ -13,8 +13,8 @@ public interface MixedNetworkServerInterface extends Remote {
 
     byte[] initContact(String name, byte[] publicKey) throws RemoteException;
 
-    byte[] get(byte[] index, byte[] tag,byte[] token, byte[] nameUser) throws Exception;
-    void add(byte[] index, byte[] value, byte[] tag, byte[] token) throws Exception;
+    byte[] get(byte[] index, byte[] tag,byte[] token, byte[] hashBA,byte[] nameUser) throws Exception;
+    void add(byte[] index, byte[] value, byte[] tag, byte[] token, byte[] hashAB) throws Exception;
 
     //todo verify also as user
     //byte[] getPublicKeySign(byte[] id) throws RemoteException;
