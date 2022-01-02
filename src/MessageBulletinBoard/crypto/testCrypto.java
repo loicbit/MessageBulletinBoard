@@ -1,15 +1,44 @@
 package MessageBulletinBoard.crypto;
 
+import MessageBulletinBoard.authenticationserver.AuthenticationServerInterface;
 import org.apache.commons.lang3.SerializationUtils;
 
 import java.security.*;
+import java.util.Base64;
 
 public class testCrypto {
     private static final int SALT_LENGTH = 16; // in bytes
 
     public static void main(String[] args) throws Exception {
-        DiffieH diffieA = new DiffieH();
-        DiffieH diffieB = new DiffieH();
+
+        KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("DSA");
+        keyPairGen.initialize(2048);
+        KeyPair pair = keyPairGen.generateKeyPair();
+        PrivateKey privKey = pair.getPrivate();
+        PublicKey publicKey = pair.getPublic();
+        Signature signSign = Signature.getInstance("SHA256WithDSA");
+
+        signSign.initSign(pair.getPrivate());
+
+        byte[] token = generateToken();
+        byte[] token2 = generateToken();
+
+        signSign.update(token);
+        byte[] tokenSigned = signSign.sign();
+
+        Signature signVerify = Signature.getInstance("SHA256WithDSA");
+        signVerify.initVerify(pair.getPublic());
+        //signVerify.update(token2);
+        signVerify.update(token);
+
+        Boolean resultSign = signVerify.verify(tokenSigned);
+
+        System.out.println(resultSign);
+
+
+
+        DiffieH diffieA = new DiffieH(false);
+        DiffieH diffieB = new DiffieH(false);
 
         byte [] empty = new byte[1];
 
@@ -21,17 +50,14 @@ public class testCrypto {
         String pubkeyA = diffieA.getPubKey();
         String pubkeyB = diffieB.getPubKey();
 
-
-        //PublicKey pubkeyA = diffieA.getPublickey();
-        //PublicKey pubkeyB = diffieB.getPublickey();
-
         diffieA.generateSecretKey(pubkeyB);
         diffieB.generateSecretKey(pubkeyA);
 
         int seed = diffieA.getSeed();
         diffieB.setSeed(seed);
 
-        String result = diffieA.encrypt("test_1");
+        String testLength = "test_1lqksùflmkqsùdkqsùlmdfkùlsqmkdfùlmqskdfùlqmskdfùmlkqsùfmdlkqslmdfkùmqsldkfùlmqskdfùmlqskdfùmlqskdùmflkqsùlfdmkqsùmdlfkùqslmdkflmqskdfùmlqskdfùlmqskdfmlkqsùdlmfkqsùdmlfkùlqmsdkfùmqslkdfùqmslkdfùlmqskdùflmkqsùlmdfkùqslmdkfùlmqskdfmlqskdùfmlqskdùflmqskdùlfmkqsùdlfmkqsùdflqsùdflmkqsùdmlfkùqslmkdfùqslkfùltest_1lqksùflmkqsùdkqsùlmdfkùlsqmkdfùlmqskdfùlqmskdfùmlkqsùfmdlkqslmdfkùmqsldkfùlmqskdfùmlqskdfùmlqskdùmflkqsùlfdmkqsùmdlfkùqslmdkflmqskdfùmlqskdfùlmqskdfmlkqsùdlmfkqsùdmlfkùlqmsdkfùmqslkdfùqmslkdfùlmqskdùflmkqsùlmdfkùqslmdkfùlmqskdfmlqskdùfmlqskdùflmqskdùlfmkqsùdlfmkqsùdflqsùdflmkqsùdmlfkùqslmkdfùqslkfùl";
+        String result = diffieA.encrypt(testLength);
         System.out.println(diffieB.decrypt(result));
 
         String result2 = diffieA.encrypt("test_2");
@@ -69,5 +95,12 @@ public class testCrypto {
         byte[] saltTemp = new byte[SALT_LENGTH];
         randomSalt.nextBytes(saltTemp);
         return saltTemp;
+    }
+
+    private static byte[] generateToken() throws SignatureException, InvalidKeyException {
+       SecureRandom secureRandom = new SecureRandom();
+        byte[] randomBytes = new byte[4];
+        secureRandom.nextBytes(randomBytes);
+        return randomBytes;
     }
 }

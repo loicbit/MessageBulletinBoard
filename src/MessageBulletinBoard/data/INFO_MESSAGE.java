@@ -3,6 +3,16 @@ package MessageBulletinBoard.data;
 public enum INFO_MESSAGE {
     TOKEN_EXPIRED,
     INVALID_TOKEN,
+    VALID_TOKEN,
+    NO_TOKENS_AIV,
     NO_MESSAGE,
-    NO_KEY
+    NO_KEY,
+    NO_INIIT_CELL,
+    NO_MESSAGE_SENT,
+    NO_SECURE_CHANNEL,
+    CRYPTO_SENT,
+    MESSAGE_SENT,
+    NO_CONTACT,
+    TOKENS_RECV,
+    TOKENS_NOT_RECV
 }

@@ -3,16 +3,16 @@ package MessageBulletinBoard.client;
 import MessageBulletinBoard.authenticationserver.AuthenticationClient;
 import MessageBulletinBoard.authenticationserver.AuthenticationServerInterface;
 import MessageBulletinBoard.data.CellLocationPair;
+import MessageBulletinBoard.data.INFO_MESSAGE;
+import org.apache.commons.lang3.EnumUtils;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
 import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.*;
 import java.util.Timer;
-import java.util.TimerTask;
 
 public class UserGui {
     private JPanel panel;
@@ -44,7 +44,11 @@ public class UserGui {
         buttonConfirmNameUser.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                setUser(textFieldNameUser.getText());
+                try {
+                    setUser(textFieldNameUser.getText());
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         });
         buttonConfirmContactName.addActionListener(new ActionListener() {
@@ -118,10 +122,17 @@ public class UserGui {
         this.textAreaConversation.setBorder(new JTextField().getBorder());
     }
 
-    private void setUser(String nameUser){
+    private void setUser(String nameUser) throws Exception {
         this.textFieldNameUser.setEnabled(false);
         this.buttonConfirmNameUser.setEnabled(false);
         this.nameUser = nameUser;
+
+        this.authClient = new AuthenticationClient(this.nameUser, true);
+        this.authClient.initAuthServer(false);
+
+
+
+
 
         try{
             this.userServer = new UserServer(nameUser);
@@ -132,11 +143,23 @@ public class UserGui {
         }
     }
 
-    private void authenticate() throws Exception {
+    private INFO_MESSAGE authenticate() throws Exception {
         // todo notify if it fails
-        this.authClient = new AuthenticationClient(nameUser);
-        this.authClient.initAuthServer();
-        this.authClient.getTokens();
+        //
+        String currentContact = String.valueOf(comboBoxContacts.getSelectedItem());
+
+        if(this.userClient.get(currentContact)!=null){
+            LinkedList tokens = this.authClient.getTokens();
+            this.userClient.get(currentContact).addTokens(tokens);
+            if(tokens != null){
+                return INFO_MESSAGE.TOKENS_RECV;
+            }else {
+                return INFO_MESSAGE.TOKENS_NOT_RECV;
+            }
+
+        }
+        else return INFO_MESSAGE.NO_CONTACT;
+
     }
 
     private void addContact(String nameContact) throws Exception {
@@ -152,6 +175,7 @@ public class UserGui {
 
         if(!this.userClient.containsKey(nameContact)){
             this.userClient.put(nameContact, new UserClient(nameContact, this.nameUser));
+            this.authenticate();
         }
 
         if(!this.isConnected(nameContact)){
@@ -179,10 +203,14 @@ public class UserGui {
         //todo handle null client
         if(this.userClient.containsKey(name) && this.userClient.get(name).isConnected()){
             //this.to
-            boolean sent=  this.userClient.get(name).sendMessageBoard(message);
+            INFO_MESSAGE sent=  this.userClient.get(name).sendMessageBoard(message);
 
-            if(!sent){
-                //todo: print error
+            if(sent!=INFO_MESSAGE.MESSAGE_SENT){
+                if(sent==INFO_MESSAGE.NO_TOKENS_AIV){
+                    LinkedList tokens = this.authClient.getTokens();
+                    this.userClient.get(name).addTokens(tokens);
+                    sent =  this.userClient.get(name).sendMessageBoard(message);
+                }
             }
         }else{
             //todo: print error message
@@ -194,6 +222,15 @@ public class UserGui {
 
         if(this.userClient.containsKey(name) && this.isConnected(name)){
             String newMessage = this.userClient.get(name).getMessageBoard();
+
+            if(EnumUtils.isValidEnum(INFO_MESSAGE.class, newMessage)){
+                if(INFO_MESSAGE.valueOf(newMessage)==INFO_MESSAGE.NO_TOKENS_AIV){
+                    LinkedList tokens = this.authClient.getTokens();
+                    this.userClient.get(name).addTokens(tokens);
+                }
+                newMessage = this.userClient.get(name).getMessageBoard();
+            }
+
             if(newMessage != null){
                 newMessage = '\n'+ newMessage;
 
@@ -244,6 +281,7 @@ public class UserGui {
     private void updateState(){
         //get latest state of bullentin, send to server.
     }
+
     public static void main(String[] args) {
         JFrame frame = new JFrame("User");
 

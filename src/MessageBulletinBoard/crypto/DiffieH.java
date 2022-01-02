@@ -2,6 +2,8 @@ package MessageBulletinBoard.crypto;
 
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
@@ -54,9 +56,15 @@ public class DiffieH {
 
     private PublicKey publickeyOther;
 
+    private boolean kdfEnabled = false;
 
-    public DiffieH() throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
+    ByteArrayOutputStream bos;
+    ObjectOutputStream out;
+
+    public DiffieH(boolean kdf) throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
         //todo: Generate seed and replace if necessary
+        this.kdfEnabled = kdf;
+
         generatePublicKey();
 
         this.randomSeedGenerator = new Random();
@@ -64,6 +72,9 @@ public class DiffieH {
 
         this.randomByteGenerator = new Random();
         this.randomByteGenerator.setSeed(this.seed);
+
+        ByteArrayOutputStream bos = null;
+        ObjectOutputStream out = null;
     }
 
     private void generatePublicKey() {
@@ -101,6 +112,39 @@ public class DiffieH {
         }
     }
 
+    public void generateSecretKeyByte(byte[] publicKeyString) {
+        try {
+            KeyFactory factory = KeyFactory.getInstance(this.KEYFACT_INST);
+            this.publickeyOther = factory.generatePublic(new X509EncodedKeySpec(publicKeyString));
+
+            keyAgreement.doPhase(publickeyOther, true);
+            this.sharedsecret = keyAgreement.generateSecret();
+            this.sharedAESsecret = Arrays.copyOf(this.sharedsecret, this.KEY_LENGTH);
+            this.originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
+            //this.secretKeyAES = new SecretKeySpec(this.sharedAESsecret, "AES");
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void generateSecretKeyObject(PublicKey publicKey) {
+        try {
+            this.publickeyOther = publicKey;
+
+            keyAgreement.doPhase(publickeyOther, true);
+            this.sharedsecret = keyAgreement.generateSecret();
+            this.sharedAESsecret = Arrays.copyOf(this.sharedsecret, this.KEY_LENGTH);
+            this.originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
+            //this.secretKeyAES = new SecretKeySpec(this.sharedAESsecret, "AES");
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
+    }
+
     public String encrypt(String msg) {
         //byte[] decodedKey = Base64.getDecoder().decode(msg);
 
@@ -110,9 +154,29 @@ public class DiffieH {
 
             cipher.init(Cipher.ENCRYPT_MODE, this.originalKey);
             byte[] cipherText = cipher.doFinal(msg.getBytes("UTF-8"));
-            this.deriveKey();
+
+            if(this.kdfEnabled) this.deriveKey();
 
             return Base64.getEncoder().encodeToString(cipherText);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Error occured while encrypting data", e);
+        }
+    }
+
+    public byte[] encryptBytes(byte[] msg) {
+        //byte[] decodedKey = Base64.getDecoder().decode(msg);
+
+        try {
+            Cipher cipher = Cipher.getInstance("AES");
+            // rebuild key using SecretKeySpec
+
+            cipher.init(Cipher.ENCRYPT_MODE, this.originalKey);
+            byte[] cipherText = cipher.doFinal(msg);
+
+            if(this.kdfEnabled) this.deriveKey();
+
+            return cipherText;
         } catch (Exception e) {
             throw new RuntimeException(
                     "Error occured while encrypting data", e);
@@ -126,9 +190,27 @@ public class DiffieH {
             //SecretKey originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
             cipher.init(Cipher.DECRYPT_MODE, this.originalKey);
             byte[] cipherText = cipher.doFinal(Base64.getDecoder().decode(encryptedData));
-            this.deriveKey();
+
+            if(this.kdfEnabled) this.deriveKey();
 
             return new String(cipherText);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Error occured while decrypting data", e);
+        }
+    }
+
+    public byte[] decryptBytes(byte[] encryptedData) {
+        try {
+            Cipher cipher = Cipher.getInstance("AES");
+            // rebuild key using SecretKeySpec
+            //SecretKey originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
+            cipher.init(Cipher.DECRYPT_MODE, this.originalKey);
+            byte[] cipherText = cipher.doFinal(encryptedData);
+
+            if(this.kdfEnabled) this.deriveKey();
+
+            return cipherText;
         } catch (Exception e) {
             throw new RuntimeException(
                     "Error occured while decrypting data", e);
@@ -138,6 +220,14 @@ public class DiffieH {
     public String getPubKey() {
         byte[] byte_pubkey = this.publickey.getEncoded();
         return Base64.getEncoder().encodeToString(byte_pubkey);
+    }
+
+    public PublicKey getPubkeyObject(){
+        return this.publickey;
+    }
+
+    public byte[] getPubKeyByte() {
+        return this.publickey.getEncoded();
     }
 
     public int getSeed(){
@@ -157,7 +247,7 @@ public class DiffieH {
         return saltTemp;
     }
 
-    public void deriveKey() throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, ShortBufferException {
+    private void deriveKey() throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, ShortBufferException {
         // todo: add random salt based on a securrandom
         // todo: bigger key
 

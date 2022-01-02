@@ -39,14 +39,6 @@ public class AsymEncrypt {
                 .generateKeyPair();
     }
 
-    /*public void setPublickKey(String contactName, String publicKey){
-        Key key= SerializationUtils.deserialize(publicKey.getBytes());
-        this.publicKeysContacts.put(contactName, key);
-    }*/
-
-    // Encryption function which converts
-    // the plainText into a cipherText
-    // using private Key.
     public byte[] do_RSAEncryption(String plainText, Key publicKey) throws Exception {
         //Key publicKey= SerializationUtils.deserialize(publicKeyStr.getBytes());
 
@@ -58,9 +50,6 @@ public class AsymEncrypt {
                 plainText.getBytes());
     }
 
-    // Encryption function which converts
-    // the plainText into a cipherText
-    // using private Key.
     public byte[] do_RSAEncryption(byte[] plainTextBytes, Key publicKey) throws Exception {
         //Key publicKey= SerializationUtils.deserialize(publicKeyStr.getBytes());
 
@@ -71,10 +60,7 @@ public class AsymEncrypt {
         return cipher.doFinal(plainTextBytes);
     }
 
-    // Decryption function which converts
-    // the ciphertext back to the
-    // original plaintext.
-    public String do_RSADecryption(byte[] cipherText) throws Exception{
+    public String decryptionToString(byte[] cipherText) throws Exception{
         Cipher cipher = Cipher.getInstance(RSA);
 
         cipher.init(Cipher.DECRYPT_MODE, this.keypair.getPrivate());
@@ -83,10 +69,7 @@ public class AsymEncrypt {
         return new String(result);
     }
 
-    // Decryption function which converts
-    // the ciphertext back to the
-    // original plaintext.
-    public byte[] do_RSADecryption_byte(byte[] cipherText) throws Exception{
+    public byte[] decryptionToByte(byte[] cipherText) throws Exception{
         Cipher cipher = Cipher.getInstance(RSA);
 
         cipher.init(Cipher.DECRYPT_MODE, this.keypair.getPrivate());
@@ -94,37 +77,4 @@ public class AsymEncrypt {
 
         return result;
     }
-
-    /*
-
-
-        byte[] cipherText
-                = do_RSAEncryption(
-                plainText);
-
-        System.out.println(
-                "The Public Key is: "
-                        + DatatypeConverter.printHexBinary(
-                        keypair.getPublic().getEncoded()));
-
-        System.out.println(
-                "The Private Key is: "
-                        + DatatypeConverter.printHexBinary(
-                        keypair.getPrivate().getEncoded()));
-
-        System.out.print("The Encrypted Text is: ");
-
-        System.out.println(
-                DatatypeConverter.printHexBinary(
-                        cipherText));
-
-        String decryptedText
-                = do_RSADecryption(
-                cipherText,
-                keypair.getPublic());
-
-        System.out.println(
-                "The decrypted text is: "
-                        + decryptedText);
-    }*/
 }

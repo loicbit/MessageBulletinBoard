@@ -9,7 +9,6 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.security.Key;
 import java.security.MessageDigest;
-import java.util.Arrays;
 import java.util.LinkedList;
 
 public class BulletinBoardClient {
@@ -93,7 +92,7 @@ public class BulletinBoardClient {
         if (messageEnc.length < 2){
             return null;
         }
-        else return this.asymEncrypt.do_RSADecryption(messageEnc);
+        else return this.asymEncrypt.decryptionToString(messageEnc);
     }
 
     /*public getPublicKey(){

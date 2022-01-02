@@ -3,15 +3,16 @@ package MessageBulletinBoard.client;
 import MessageBulletinBoard.bulletinboard.BulletinBoardInterface;
 import MessageBulletinBoard.crypto.AsymEncrypt;
 import MessageBulletinBoard.data.CellLocationPair;
+import MessageBulletinBoard.data.INFO_MESSAGE;
 import MessageBulletinBoard.mixednetwork.MixedNetworkClient;
 import org.apache.commons.lang3.SerializationUtils;
 
 import java.nio.charset.Charset;
-import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.security.Key;
 import java.security.SecureRandom;
+import java.util.LinkedList;
 import java.util.Random;
 
 public class UserClient {
@@ -50,7 +51,7 @@ public class UserClient {
 
         this.asymEncrypt = new AsymEncrypt();
 
-        this.mixedNetworkClient = new MixedNetworkClient(contact);
+        this.mixedNetworkClient = new MixedNetworkClient(contact, user);
 
 
         try{
@@ -89,7 +90,6 @@ public class UserClient {
         //      prevent own name
         if(!this.connected){
             //byte[] publicKeySerialized = SerializationUtils.serialize(this.publicKey);
-
             // Setup assymetric communication between the two contacts before exchanging public keys for symmetric
 
             byte[] publicKeyOtherSerialized =  this.contactServerStub.initContact(this.nameUser, this.asymEncrypt.getPublicKeySer());
@@ -103,34 +103,38 @@ public class UserClient {
         else return null;
     }
 
-    public void sendPublicKeys() throws Exception {
-        this.mixedNetworkClient.sendCryptoKeys();
+    public INFO_MESSAGE sendPublicKeys() throws Exception {
+        return this.mixedNetworkClient.sendCryptoKeys();
     }
 
-    public boolean sendMessageBoard(String message) throws Exception {
+    public INFO_MESSAGE sendMessageBoard(String message) throws Exception {
+        INFO_MESSAGE status;
+
         if(isConnected()){
             if(this.mixedNetworkClient.isSecured()){
-                this.mixedNetworkClient.sendMessage(message);
+                status = this.mixedNetworkClient.sendMessage(message);
             }else{
-                sendPublicKeys();
+                return sendPublicKeys();
                 //todo; error not secured to send
-                return false;
             }
         }else {
             //todo print error message
 
         }
-        return false;
+        return INFO_MESSAGE.NO_MESSAGE_SENT;
     }
 
     public String getMessageBoard() throws Exception {
-        //todo check if it is not publickeys
         if(isConnected()){
             return this.mixedNetworkClient.getMessage();
         }else {
             //todo print error message
             return null;
         }
+    }
+
+    public void addTokens(LinkedList tokens){
+        this.mixedNetworkClient.addTokensUser(tokens);
     }
 
     public boolean firstCellExchange(String nameContact) throws Exception {
@@ -142,7 +146,7 @@ public class UserClient {
         byte[] nameAndCellEncrypted = this.asymEncrypt.do_RSAEncryption(nameAndCell, this.publicKeyOther);
 
         byte[] firstCellGetEncrypted = this.contactServerStub.getFirstCell(nameAndCellEncrypted);
-        String firstCellGet = this.asymEncrypt.do_RSADecryption(firstCellGetEncrypted);
+        String firstCellGet = this.asymEncrypt.decryptionToString(firstCellGetEncrypted);
 
         CellLocationPair firstCellReceive = new CellLocationPair(firstCellGet);
         this.mixedNetworkClient.setNextCellLocationPairBA(firstCellReceive);
@@ -185,21 +189,4 @@ public class UserClient {
 
     }
 
-    /*
-    public byte[] getStateSend(){
-        return this.boardClient.getStateHashSend();
-    }
-
-    public byte[] getStateReceive(){
-        return this.boardClient.getStateHashReceive();
-    }*/
-
-     /*
-    public CellLocationPair getNextCellLocationPairAB(){
-        return this.nextCellLocationPairAB;
-    }
-
-    public CellLocationPair getNextCellLocationPairBA(){
-        return this.nextCellLocationPairBA;
-    }*/
 }

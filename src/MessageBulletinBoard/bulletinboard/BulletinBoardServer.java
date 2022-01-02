@@ -76,9 +76,9 @@ public class BulletinBoardServer implements BulletinBoardInterface{
 
     @Override
     public byte[] get(byte[] indexEnc, byte[] tagEnc, byte[] authTokenEnc) throws Exception {
-        String indexStr = this.asymEncrypt.do_RSADecryption(indexEnc);
-        String tag = this.asymEncrypt.do_RSADecryption(tagEnc);
-        String authToken = this.asymEncrypt.do_RSADecryption(authTokenEnc);
+        String indexStr = this.asymEncrypt.decryptionToString(indexEnc);
+        String tag = this.asymEncrypt.decryptionToString(tagEnc);
+        String authToken = this.asymEncrypt.decryptionToString(authTokenEnc);
 
         int index = Integer.parseInt(indexStr);
 
@@ -109,9 +109,9 @@ public class BulletinBoardServer implements BulletinBoardInterface{
 
 
     public void add(byte[] indexEnc, byte[] valueEnc, byte[]tagEnc) throws Exception {
-        String indexStr = this.asymEncrypt.do_RSADecryption(indexEnc);
-        String value = this.asymEncrypt.do_RSADecryption(valueEnc);
-        String tag = this.asymEncrypt.do_RSADecryption(tagEnc);
+        String indexStr = this.asymEncrypt.decryptionToString(indexEnc);
+        String value = this.asymEncrypt.decryptionToString(valueEnc);
+        String tag = this.asymEncrypt.decryptionToString(tagEnc);
 
         int index = Integer.parseInt(indexStr);
 

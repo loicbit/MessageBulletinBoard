@@ -68,7 +68,7 @@ public class UserServer implements UserServerInterface{
 
     @Override
     public byte[] getFirstCell(byte[] firstCellBA) throws Exception {
-        String decrypted = this.asymEncrypt.do_RSADecryption(firstCellBA);
+        String decrypted = this.asymEncrypt.decryptionToString(firstCellBA);
 
         String[] response = decrypted.split(UserServerInterface.DIV_CELL);
         String nameContact = response[0];
@@ -98,7 +98,7 @@ public class UserServer implements UserServerInterface{
         //todo generate own state
         String sameState = "";
 
-        String decrypted = this.asymEncrypt.do_RSADecryption(hashState);
+        String decrypted = this.asymEncrypt.decryptionToString(hashState);
 
         String[] response = decrypted.split(UserServerInterface.DIV_CELL);
         String nameContact = response[0];

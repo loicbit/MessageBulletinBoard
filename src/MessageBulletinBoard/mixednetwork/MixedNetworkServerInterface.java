@@ -2,6 +2,10 @@ package MessageBulletinBoard.mixednetwork;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 
 public interface MixedNetworkServerInterface extends Remote {
     int NUMBER_TOKENS_SESSION = 10;
@@ -11,10 +15,13 @@ public interface MixedNetworkServerInterface extends Remote {
     String DIV_TOKEN = "DIVTOKEN";
     String algoMD = "SHA-256";
 
-    byte[] initContact(String name, byte[] publicKey) throws RemoteException;
+    String DEF_NAME = "MixedServerNr:";
 
-    byte[] get(byte[] index, byte[] tag,byte[] token, byte[] hashBA,byte[] nameUser) throws Exception;
-    void add(byte[] index, byte[] value, byte[] tag, byte[] token, byte[] hashAB) throws Exception;
+    PublicKey initContact(String name, PublicKey publicKey) throws RemoteException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException;
+
+    byte[] get(byte[] index, byte[] tag,byte[] token, byte[] hashBA,String nameUse) throws Exception;
+    void add(byte[] index, byte[] value, byte[] tag, byte[] token, byte[] hashAB, String nameUse) throws Exception;
+    //void addToken(byte[] token, byte[] nameUser, String nameServer) throws Exception;
 
     //todo verify also as user
     //byte[] getPublicKeySign(byte[] id) throws RemoteException;
