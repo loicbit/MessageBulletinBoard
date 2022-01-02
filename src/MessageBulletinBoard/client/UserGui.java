@@ -24,8 +24,6 @@ public class UserGui {
     private JTextArea textAreaConversation;
     private JTextField textFieldMessage;
     private JButton buttonSendMessage;
-    private JButton buttonConnect;
-    private JButton buttonGetAuthenticated;
 
     private UserServer userServer;
     private final HashMap<String, UserClient>  userClient = new HashMap();
@@ -56,34 +54,13 @@ public class UserGui {
                 }
             }
         });
-        buttonConnect.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String currentContact = String.valueOf(comboBoxContacts.getSelectedItem());
-                try {
-                    connectContact(currentContact);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-        });
+
         buttonSendMessage.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String currentContact = String.valueOf(comboBoxContacts.getSelectedItem());
                 try {
                     sendMessage(currentContact, textFieldMessage.getText());
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-        });
-
-        buttonGetAuthenticated.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    authenticate();
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -172,10 +149,6 @@ public class UserGui {
 
             } catch (RemoteException ex) {
 
-            }
-
-            if (exchanged) {
-                this.buttonConfirmContactName.setEnabled(false);
             }
         }
     }

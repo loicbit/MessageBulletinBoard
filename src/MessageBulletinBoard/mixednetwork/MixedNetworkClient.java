@@ -85,8 +85,6 @@ public class MixedNetworkClient {
         CellLocationPair locationCurrentMessage = this.nextCellLocationPairAB;
 
         if(locationCurrentMessage != null){
-            //String token = getToken();
-            //todo get token
 
             if(this.tokens.isEmpty()) return INFO_MESSAGE.NO_TOKENS_AIV;
 
@@ -119,8 +117,6 @@ public class MixedNetworkClient {
         String randomSeedKDFString = Integer.toString(this.symEncryptAB.getSeed());
 
         if(locationCurrentMessage != null){
-            //String token = getToken();
-
             if(this.tokens.isEmpty()) return INFO_MESSAGE.NO_TOKENS_AIV;
 
             byte[] token = this.tokens.get(0);
@@ -152,7 +148,6 @@ public class MixedNetworkClient {
 
     public String getMessage() throws Exception {
         if(this.tokens.isEmpty()){
-            //todo; return error message
             return INFO_MESSAGE.NO_TOKENS_AIV.name();
         }
 
@@ -206,18 +201,16 @@ public class MixedNetworkClient {
         this.nextCellLocationPairAB = null;
         String [] result = new String[2];
 
-        //todo replace generator
-        Random rand = new Random();
+        SecureRandom rand = new SecureRandom();
         int index = rand.nextInt(BulletinBoardInterface.NUMBER_CELLS *100)%BulletinBoardInterface.NUMBER_CELLS;
 
 
         byte[] array = new byte[BulletinBoardInterface.TAG_LENGTH];
-        new Random().nextBytes(array);
+        new SecureRandom().nextBytes(array);
         String tag = new String(array, StandardCharsets.US_ASCII);
 
         CellLocationPair nextLocationCell = new CellLocationPair(index, tag);
 
-        //todo clear and only save the hash
         this.nextCellLocationPairAB = nextLocationCell;
 
         // uMessage
@@ -268,7 +261,6 @@ public class MixedNetworkClient {
         String tag = locPair.getTag();
 
         byte[] key = null;
-
 
         if(sharedKey == null || !this.publicKeysSend){
             key = INFO_MESSAGE.NO_KEY.name().getBytes();
