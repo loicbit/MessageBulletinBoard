@@ -63,7 +63,6 @@ public class DiffieH {
     ObjectOutputStream out;
 
     public DiffieH(boolean kdf) throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
-        //todo: Generate seed and replace if necessary
         this.kdfEnabled = kdf;
 
         generatePublicKey();
@@ -71,6 +70,7 @@ public class DiffieH {
         this.randomSeedGenerator = new Random();
         this.seed = this.randomSeedGenerator.nextInt();
 
+        // SecureRandom is a better option, but failed in setting the seed for deterministic kdf between both parties.
         this.randomByteGenerator = new Random();
         this.randomByteGenerator.setSeed(this.seed);
 
@@ -103,7 +103,6 @@ public class DiffieH {
             this.sharedsecret = keyAgreement.generateSecret();
             this.sharedAESsecret = Arrays.copyOf(this.sharedsecret, KEY_LENGTH);
             this.originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
-            //this.secretKeyAES = new SecretKeySpec(this.sharedAESsecret, "AES");
         } catch (InvalidKeyException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
@@ -147,7 +146,6 @@ public class DiffieH {
     }
 
     public String encrypt(String msg) {
-        //byte[] decodedKey = Base64.getDecoder().decode(msg);
 
         try {
             Cipher cipher = Cipher.getInstance("AES");
@@ -166,7 +164,6 @@ public class DiffieH {
     }
 
     public byte[] encryptBytes(byte[] msg) {
-        //byte[] decodedKey = Base64.getDecoder().decode(msg);
 
         try {
             Cipher cipher = Cipher.getInstance("AES");
@@ -188,7 +185,6 @@ public class DiffieH {
         try {
             Cipher cipher = Cipher.getInstance("AES");
             // rebuild key using SecretKeySpec
-            //SecretKey originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
             cipher.init(Cipher.DECRYPT_MODE, this.originalKey);
             byte[] cipherText = cipher.doFinal(Base64.getDecoder().decode(encryptedData));
 
@@ -205,7 +201,6 @@ public class DiffieH {
         try {
             Cipher cipher = Cipher.getInstance("AES");
             // rebuild key using SecretKeySpec
-            //SecretKey originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
             cipher.init(Cipher.DECRYPT_MODE, this.originalKey);
             byte[] cipherText = cipher.doFinal(encryptedData);
 

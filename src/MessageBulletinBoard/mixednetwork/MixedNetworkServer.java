@@ -94,9 +94,7 @@ public class MixedNetworkServer implements MixedNetworkServerInterface {
                 if (message != null) {
                     return this.diffieEncrypt.get(nameUser).encryptBytes(message.getBytes());
                 }
-                //todo return enum
             } else {
-                // todo send message bad state
                 return BulletinBoardInterface.emptyMessage;
             }
         }
@@ -119,7 +117,6 @@ public class MixedNetworkServer implements MixedNetworkServerInterface {
         }
     }
 
-    // todo find usage
     private void connectBulletinBoard() throws Exception {
         this.bulletinBoardClient = new BulletinBoardClient();
     }
@@ -135,9 +132,7 @@ public class MixedNetworkServer implements MixedNetworkServerInterface {
 
         Boolean valid = false;
 
-        // todo return info message
         if (this.publicKeySignature == null) {
-            //todo get public key
             return false;
         }
 
@@ -154,7 +149,6 @@ public class MixedNetworkServer implements MixedNetworkServerInterface {
 
         //check if all tokens received
         if (this.validTokens.get(user).isEmpty()) {
-            //todo add info message
             return false;
         }
 
@@ -180,8 +174,6 @@ public class MixedNetworkServer implements MixedNetworkServerInterface {
     }
 
     private boolean verifyState(byte[] hash, int index, String tag) {
-        //Todo hash the cellocation
-
         CellLocationPair cellPair = new CellLocationPair(index, tag);
         // The hash of the tag is used in the key.
         String keyString = cellPair.getIndex() + CellLocationPair.divider + cellPair.getTagHash();

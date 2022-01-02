@@ -105,7 +105,6 @@ public class UserServer implements UserServerInterface{
         return this.publickeys.get(contactName);
     }
 
-    //todo: remove
     private CellLocationPair convertToObject(String pairString){
         String[] splitted = pairString.split(CellLocationPair.divider);
 

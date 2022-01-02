@@ -21,8 +21,4 @@ public interface MixedNetworkServerInterface extends Remote {
 
     byte[] get(byte[] index, byte[] tag,byte[] token, byte[] hashBA,String nameUse) throws Exception;
     void add(byte[] index, byte[] value, byte[] tag, byte[] token, byte[] hashAB, String nameUse) throws Exception;
-    //void addToken(byte[] token, byte[] nameUser, String nameServer) throws Exception;
-
-    //todo verify also as user
-    //byte[] getPublicKeySign(byte[] id) throws RemoteException;
 }

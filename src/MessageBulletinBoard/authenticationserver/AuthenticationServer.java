@@ -99,7 +99,6 @@ public class AuthenticationServer implements AuthenticationServerInterface {
         }else return BulletinBoardInterface.emptyMessage;
     }
 
-    //todo authenticate server
     @Override
     public byte[] getTokenSign(String serverName, String user){
         byte[] token = this.tokensClients.get(user).poll();

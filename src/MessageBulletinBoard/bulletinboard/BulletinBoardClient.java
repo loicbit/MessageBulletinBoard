@@ -23,7 +23,6 @@ public class BulletinBoardClient {
 
     private final String authName;
 
-    // todo generate hash of the state
 
     public BulletinBoardClient() throws Exception {
 
@@ -63,7 +62,6 @@ public class BulletinBoardClient {
 
         byte[] messageEnc = this.bulletinServerStub.get(indexEnc, tagEnc, authEnc);
 
-        // todo: Change empty message to info
         if (messageEnc.length < 2) {
             return null;
         } else return this.asymEncrypt.decryptionToString(messageEnc);

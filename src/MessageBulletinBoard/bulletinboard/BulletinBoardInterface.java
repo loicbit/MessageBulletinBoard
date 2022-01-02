@@ -13,7 +13,6 @@ public interface BulletinBoardInterface extends Remote{
     String STUB_NAME = "rmi:bulletinboard";
     String DEF_NAME = "BulletinBoardNr:";
 
-    //todo check use secure param
     int TAG_LENGTH = 8;
 
     String messageDiv = "DIVMES";
