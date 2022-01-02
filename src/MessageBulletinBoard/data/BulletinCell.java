@@ -9,7 +9,7 @@ public class BulletinCell {
         return cellPairs;
     }
 
-    private Set<CellPair> cellPairs = new HashSet<>();
+    private final Set<CellPair> cellPairs = new HashSet<>();
 
 
     public BulletinCell() {

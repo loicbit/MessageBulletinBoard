@@ -5,7 +5,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class CellLocationPair implements Serializable {
-    private int index;
+    private final int index;
     private String tag;
     public static String divider = "DIVPCELL";
     private MessageDigest md = null;
@@ -50,7 +50,7 @@ public class CellLocationPair implements Serializable {
     }
 
     public CellLocationPair(String pairString){
-        String splitted[] = pairString.split(CellLocationPair.divider);
+        String[] splitted = pairString.split(CellLocationPair.divider);
 
         this.index = Integer.valueOf(splitted[0]);
         this.tag = splitted[1];
@@ -82,6 +82,6 @@ public class CellLocationPair implements Serializable {
         }
 
 
-        return this.index == pairToCompare.getIndex() && new String(this.tag).equals(new String(pairToCompare.getTag()));
+        return this.index == pairToCompare.getIndex() && this.tag.equals(pairToCompare.getTag());
     }
 }

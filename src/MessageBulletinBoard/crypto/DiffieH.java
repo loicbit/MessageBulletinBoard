@@ -5,6 +5,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
@@ -23,7 +24,7 @@ public class DiffieH {
     //private PublicKey pubKey;
     //private SecretKeySpec aesKey = null;
 
-    private String publicKeyString = null;
+    private final String publicKeyString = null;
 
 
 
@@ -36,23 +37,23 @@ public class DiffieH {
     byte[] sharedsecret = null;
     byte[] sharedAESsecret = null;
     private SecretKey originalKey = null;
-    private KeySpec specs = null;
-    private KeySpec specs2 = null;
+    private final KeySpec specs = null;
+    private final KeySpec specs2 = null;
 
     String ALGO = "AES";
-    private String KEYGEN_SPEC = "PBKDF2WithHmacSHA1";
+    private final String KEYGEN_SPEC = "PBKDF2WithHmacSHA1";
     private static final int SALT_LENGTH = 16; // in bytes
     private static final int ITERATIONS = 32768;
     private static final int KEY_LENGTH = 16;
 
-    private String KEYFACT_INST = "EC";
+    private final String KEYFACT_INST = "EC";
 
     public byte[] secretKeyPBE;
 
-    private Random randomSeedGenerator;
+    private final Random randomSeedGenerator;
     private Random randomByteGenerator;
     private int seed;
-    private int LENGTH_RANDOM_BYTES = 12;
+    private final int LENGTH_RANDOM_BYTES = 12;
 
     private PublicKey publickeyOther;
 
@@ -100,7 +101,7 @@ public class DiffieH {
 
             keyAgreement.doPhase(publickeyOther, true);
             this.sharedsecret = keyAgreement.generateSecret();
-            this.sharedAESsecret = Arrays.copyOf(this.sharedsecret, this.KEY_LENGTH);
+            this.sharedAESsecret = Arrays.copyOf(this.sharedsecret, KEY_LENGTH);
             this.originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
             //this.secretKeyAES = new SecretKeySpec(this.sharedAESsecret, "AES");
         } catch (InvalidKeyException e) {
@@ -119,7 +120,7 @@ public class DiffieH {
 
             keyAgreement.doPhase(publickeyOther, true);
             this.sharedsecret = keyAgreement.generateSecret();
-            this.sharedAESsecret = Arrays.copyOf(this.sharedsecret, this.KEY_LENGTH);
+            this.sharedAESsecret = Arrays.copyOf(this.sharedsecret, KEY_LENGTH);
             this.originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
             //this.secretKeyAES = new SecretKeySpec(this.sharedAESsecret, "AES");
         } catch (InvalidKeyException e) {
@@ -137,7 +138,7 @@ public class DiffieH {
 
             keyAgreement.doPhase(publickeyOther, true);
             this.sharedsecret = keyAgreement.generateSecret();
-            this.sharedAESsecret = Arrays.copyOf(this.sharedsecret, this.KEY_LENGTH);
+            this.sharedAESsecret = Arrays.copyOf(this.sharedsecret, KEY_LENGTH);
             this.originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
             //this.secretKeyAES = new SecretKeySpec(this.sharedAESsecret, "AES");
         } catch (InvalidKeyException e) {
@@ -153,7 +154,7 @@ public class DiffieH {
             // rebuild key using SecretKeySpec
 
             cipher.init(Cipher.ENCRYPT_MODE, this.originalKey);
-            byte[] cipherText = cipher.doFinal(msg.getBytes("UTF-8"));
+            byte[] cipherText = cipher.doFinal(msg.getBytes(StandardCharsets.UTF_8));
 
             if(this.kdfEnabled) this.deriveKey();
 
@@ -248,9 +249,6 @@ public class DiffieH {
     }
 
     private void deriveKey() throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, ShortBufferException {
-        // todo: add random salt based on a securrandom
-        // todo: bigger key
-
         MessageDigest keyHash = MessageDigest.getInstance("SHA-256");
         keyHash.update(this.sharedAESsecret);
 
@@ -265,7 +263,7 @@ public class DiffieH {
         keyHash.update(keys.get(2));
 
         this.sharedsecret = keyHash.digest();
-        this.sharedAESsecret = Arrays.copyOf(this.sharedsecret, this.KEY_LENGTH);
+        this.sharedAESsecret = Arrays.copyOf(this.sharedsecret, KEY_LENGTH);
         this.originalKey = new SecretKeySpec(this.sharedAESsecret, "AES");
     }
 

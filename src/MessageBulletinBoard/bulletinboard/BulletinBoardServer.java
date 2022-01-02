@@ -9,23 +9,21 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
 import MessageBulletinBoard.data.CellPair;
+import MessageBulletinBoard.mixednetwork.MixedNetworkServerInterface;
 import org.apache.commons.lang3.SerializationUtils;
 
 import java.security.*;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 
 public class BulletinBoardServer implements BulletinBoardInterface{
-    private BulletinCell cells[] = null;
-    private int NUMBER_CELLS = 300;
+    private BulletinCell[] cells = null;
+    private final int NUMBER_CELLS = 300;
 
     static Registry registry = null;
-    private MessageDigest md;
+    private final MessageDigest md;
     private AsymEncrypt asymEncrypt = null;
 
-    private List<String> authTokens = new LinkedList<>();
-    private HashMap<String,Key> publickeys = new HashMap<>();
+    private final HashMap<String,Key> publickeys = new HashMap<>();
 
     private Key publickeyOther;
 
@@ -78,6 +76,8 @@ public class BulletinBoardServer implements BulletinBoardInterface{
     public byte[] get(byte[] indexEnc, byte[] tagEnc, byte[] authTokenEnc) throws Exception {
         String indexStr = this.asymEncrypt.decryptionToString(indexEnc);
         String tag = this.asymEncrypt.decryptionToString(tagEnc);
+
+        //Possibility to verify client with auth token/name
         String authToken = this.asymEncrypt.decryptionToString(authTokenEnc);
 
         int index = Integer.parseInt(indexStr);
@@ -97,12 +97,10 @@ public class BulletinBoardServer implements BulletinBoardInterface{
         if (toRemove != null) {
             this.cells[index].removePair(toRemove);
             try {
-                return this.asymEncrypt.do_RSAEncryption(message, this.publickeyOther);
+                return this.asymEncrypt.encryptionTBytes(message, this.publickeyOther);
             } catch (Exception e){
                 System.out.println(e);
             }
-
-            //return this.asymEncrypt.do_RSAEncryption(message, this.publickeys.get(authToken));
         }
         return BulletinBoardInterface.emptyMessage;
     }
@@ -119,15 +117,8 @@ public class BulletinBoardServer implements BulletinBoardInterface{
         this.cells[index].addPair(newPair);
     }
 
-    private boolean verifyAuthToken(String token){
-        return true;
-
-        //todo verify
-        //todo save used tokens and check
-        /*
-        if(this.usedTokens.contains(token)) return false;
-
-        //this.signature
-        return true;*/
+    private boolean verifyAuthToken(String authName){
+        // Bad verification of mixedserver name
+        return authName.contains(MixedNetworkServerInterface.DEF_NAME);
     }
 }

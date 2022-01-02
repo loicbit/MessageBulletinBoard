@@ -1,8 +1,8 @@
 package MessageBulletinBoard.data;
 
 public class CellPair {
-    private String value;
-    private String tag;
+    private final String value;
+    private final String tag;
 
     public String getValue() {
         return value;
@@ -32,6 +32,6 @@ public class CellPair {
             throw new IllegalArgumentException(obj + " is not a valid CellPair.");
         }
 
-        return this.value.equals(pairToCompare.getValue()) &&  new String(this.tag).equals(new String(pairToCompare.getTag()));
+        return this.value.equals(pairToCompare.getValue()) && this.tag.equals(pairToCompare.getTag());
     }
 }

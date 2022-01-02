@@ -6,7 +6,6 @@ import java.rmi.RemoteException;
 public interface UserServerInterface extends Remote {
     byte[] initContact(String name, byte[] publicKey) throws RemoteException;
     byte[] getFirstCell(byte[] firstCellBA) throws Exception;
-    byte[] checkState(byte[] hashState) throws Exception;
 
 
     String DIV_CELL = "DIVFCELL";

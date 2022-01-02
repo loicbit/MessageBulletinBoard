@@ -7,7 +7,7 @@ import MessageBulletinBoard.data.INFO_MESSAGE;
 import MessageBulletinBoard.mixednetwork.MixedNetworkClient;
 import org.apache.commons.lang3.SerializationUtils;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.security.Key;
@@ -16,38 +16,25 @@ import java.util.LinkedList;
 import java.util.Random;
 
 public class UserClient {
-    //todo: reach out to new contact
-    //      add message to cell
-    //      get message of cell
-
     private Registry registry;
-    private String nameContact;
-    private String nameUser;
+    private final String nameContact;
+    private final String nameUser;
 
     private boolean connected;
-    private boolean secured;
-
-    private CellLocationPair nextCellLocationPairAB = null;
-    private CellLocationPair nextCellLocationPairBA = null;
-
-    private String secretKey;
-    private String publicKey;
 
     private Key publicKeyOther;
     AsymEncrypt asymEncrypt;
 
-    private MixedNetworkClient mixedNetworkClient;
+    private final MixedNetworkClient mixedNetworkClient;
 
 
     private UserServerInterface contactServerStub;
 
 
     public UserClient(String contact, String user) throws Exception {
-        this.publicKey = null;
         this.nameContact = contact;
         this.nameUser = user;
         this.connected = false;
-        this.secured = false;
 
         this.asymEncrypt = new AsymEncrypt();
 
@@ -65,7 +52,6 @@ public class UserClient {
 
         }catch(Exception e){
             System.out.println(e);
-            //throw new Exception();
         }
 
         try{
@@ -75,23 +61,14 @@ public class UserClient {
         }
     }
 
-    public void setSecretKey(String secretKey){
-        this.secretKey = secretKey;
-    }
 
     public void setPublicKeyContact(Key publicKeyOther){
         this.publicKeyOther = publicKeyOther;
     }
 
 
-    public Boolean symmetricKeyExchange(String nameContact) throws Exception {
-        //todo prepare first cell for other
-        //      setup secure communication before start
-        //      prevent own name
+    public Boolean asymmetricKeyExchange(String nameContact) throws Exception {
         if(!this.connected){
-            //byte[] publicKeySerialized = SerializationUtils.serialize(this.publicKey);
-            // Setup assymetric communication between the two contacts before exchanging public keys for symmetric
-
             byte[] publicKeyOtherSerialized =  this.contactServerStub.initContact(this.nameUser, this.asymEncrypt.getPublicKeySer());
             this.publicKeyOther = SerializationUtils.deserialize(publicKeyOtherSerialized);
 
@@ -115,10 +92,8 @@ public class UserClient {
                 status = this.mixedNetworkClient.sendMessage(message);
             }else{
                 return sendPublicKeys();
-                //todo; error not secured to send
             }
         }else {
-            //todo print error message
 
         }
         return INFO_MESSAGE.NO_MESSAGE_SENT;
@@ -128,7 +103,6 @@ public class UserClient {
         if(isConnected()){
             return this.mixedNetworkClient.getMessage();
         }else {
-            //todo print error message
             return null;
         }
     }
@@ -142,8 +116,8 @@ public class UserClient {
         this.mixedNetworkClient.setNextCellLocationPairAB(firstCellSend);
 
         //byte[] cellSerialized = SerializationUtils.serialize(firstCellSend);
-        String nameAndCell = nameContact + UserServerInterface.DIV_CELL+ firstCellSend.toString();
-        byte[] nameAndCellEncrypted = this.asymEncrypt.do_RSAEncryption(nameAndCell, this.publicKeyOther);
+        String nameAndCell = nameContact + UserServerInterface.DIV_CELL+ firstCellSend;
+        byte[] nameAndCellEncrypted = this.asymEncrypt.encryptionTBytes(nameAndCell, this.publicKeyOther);
 
         byte[] firstCellGetEncrypted = this.contactServerStub.getFirstCell(nameAndCellEncrypted);
         String firstCellGet = this.asymEncrypt.decryptionToString(firstCellGetEncrypted);
@@ -151,8 +125,7 @@ public class UserClient {
         CellLocationPair firstCellReceive = new CellLocationPair(firstCellGet);
         this.mixedNetworkClient.setNextCellLocationPairBA(firstCellReceive);
 
-        if(firstCellReceive != null) return true;
-        else return false;
+        return firstCellReceive != null;
     }
 
     public void setFirstCellPair(CellLocationPair cellAB, CellLocationPair cellBA){
@@ -166,27 +139,16 @@ public class UserClient {
         Random rand = new SecureRandom();
         int index = rand.nextInt(BulletinBoardInterface.NUMBER_CELLS *100)%BulletinBoardInterface.NUMBER_CELLS;
 
-        byte[] array = new byte[BulletinBoardInterface.securityParam];
+        byte[] array = new byte[BulletinBoardInterface.TAG_LENGTH];
         new Random().nextBytes(array);
-        String tag = new String(array, Charset.forName("ASCII"));
+        String tag = new String(array, StandardCharsets.US_ASCII);
 
         return new CellLocationPair(index, tag);
     }
 
-    private void getSecurityParameters(String nameContact){
-
-    }
 
     public boolean isConnected(){
         return this.mixedNetworkClient.isConnected();
-        //return this.connected;
-    }
-
-
-    //todo get states from bulletin
-
-    private void updateStates(){
-
     }
 
 }

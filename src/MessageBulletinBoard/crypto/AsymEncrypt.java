@@ -4,16 +4,13 @@ import org.apache.commons.lang3.SerializationUtils;
 
 import javax.crypto.Cipher;
 import java.security.*;
-import java.util.HashMap;
 
-//todo: change key serialisation
-// https://docs.oracle.com/javase/7/docs/api/java/security/KeyFactory.html
+
 public class AsymEncrypt {
-    private static final String RSA
+    private static final String KEY_ALGO
             = "RSA";
     private KeyPair keypair = null;
 
-    private HashMap<String, Key> publicKeysContacts = new HashMap<>();
 
     public AsymEncrypt() throws Exception {
         this.keypair = generateRSAKkeyPair();
@@ -31,7 +28,7 @@ public class AsymEncrypt {
         SecureRandom secureRandom
                 = new SecureRandom();
         KeyPairGenerator keyPairGenerator
-                = KeyPairGenerator.getInstance(RSA);
+                = KeyPairGenerator.getInstance(KEY_ALGO);
 
         keyPairGenerator.initialize(
                 2048, secureRandom);
@@ -39,10 +36,8 @@ public class AsymEncrypt {
                 .generateKeyPair();
     }
 
-    public byte[] do_RSAEncryption(String plainText, Key publicKey) throws Exception {
-        //Key publicKey= SerializationUtils.deserialize(publicKeyStr.getBytes());
-
-        Cipher cipher = Cipher.getInstance(RSA);
+    public byte[] encryptionTBytes(String plainText, Key publicKey) throws Exception {
+        Cipher cipher = Cipher.getInstance(KEY_ALGO);
 
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
 
@@ -50,10 +45,8 @@ public class AsymEncrypt {
                 plainText.getBytes());
     }
 
-    public byte[] do_RSAEncryption(byte[] plainTextBytes, Key publicKey) throws Exception {
-        //Key publicKey= SerializationUtils.deserialize(publicKeyStr.getBytes());
-
-        Cipher cipher = Cipher.getInstance(RSA);
+    public byte[] encryptionTBytes(byte[] plainTextBytes, Key publicKey) throws Exception {
+        Cipher cipher = Cipher.getInstance(KEY_ALGO);
 
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
 
@@ -61,7 +54,7 @@ public class AsymEncrypt {
     }
 
     public String decryptionToString(byte[] cipherText) throws Exception{
-        Cipher cipher = Cipher.getInstance(RSA);
+        Cipher cipher = Cipher.getInstance(KEY_ALGO);
 
         cipher.init(Cipher.DECRYPT_MODE, this.keypair.getPrivate());
         byte[] result = cipher.doFinal(cipherText);
@@ -70,7 +63,7 @@ public class AsymEncrypt {
     }
 
     public byte[] decryptionToByte(byte[] cipherText) throws Exception{
-        Cipher cipher = Cipher.getInstance(RSA);
+        Cipher cipher = Cipher.getInstance(KEY_ALGO);
 
         cipher.init(Cipher.DECRYPT_MODE, this.keypair.getPrivate());
         byte[] result = cipher.doFinal(cipherText);

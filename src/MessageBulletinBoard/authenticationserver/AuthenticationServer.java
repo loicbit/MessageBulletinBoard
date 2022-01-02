@@ -21,29 +21,22 @@ import java.util.*;
 
 
 public class AuthenticationServer implements AuthenticationServerInterface {
-    private AsymEncrypt asymEncrypt;
-    private HashMap<String, DiffieH> diffieEncrypt;
-    private LinkedList<String> mixedServerNames;
-    private HashMap<String, Queue<byte[]>> tokensClients;
+    private final HashMap<String, DiffieH> diffieEncrypt;
+    private final LinkedList<String> mixedServerNames;
+    private final HashMap<String, Queue<byte[]>> tokensClients;
     static Registry registry = null;
 
     private KeyPairGenerator keyPairGen = null;
     private KeyPair pair = null;
     private PrivateKey privKey = null;
-    private PublicKey publicKey = null;
     private Signature sign = null;
 
     private SecureRandom secureRandom = null; //threadsafe
-    private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder(); //threadsafe
-
-    private BulletinBoardClient bulletinBoardClient;
 
     public AuthenticationServer() throws Exception {
-        this.asymEncrypt = new AsymEncrypt();
         this.secureRandom = new SecureRandom();
         this.mixedServerNames = new LinkedList<>();
         this.tokensClients = new HashMap<>();
-        //this.mixedServerClients = new HashMap<>();
 
         this.diffieEncrypt = new HashMap<>();
         initSignature();
@@ -71,30 +64,7 @@ public class AuthenticationServer implements AuthenticationServerInterface {
     }
 
     @Override
-    public PublicKey initContact(String name, PublicKey publicKeyOther) throws RemoteException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
-        //Key publicKeyOther = SerializationUtils.deserialize(publicKey);
-        this.diffieEncrypt.put(name, new DiffieH(false));
-        this.diffieEncrypt.get(name).generateSecretKeyObject(publicKeyOther);
-        this.tokensClients.put(name, new LinkedList<>());
-        //this.publickeysAs.put(name, publicKeyOther);
-
-        String out = name + "is connected";
-        System.err.println(out);
-        return this.diffieEncrypt.get(name).getPubkeyObject();
-    }
-
-    @Override
-    public PublicKey initMixedServer(String name, PublicKey publicKeyOther) throws RemoteException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
-        /*this.diffieEncrypt.put(name, new DiffieH(false));
-        String pubkey= this.diffieEncrypt.get(name).getPubKey();
-        this.diffieEncrypt.get(name).generateSecretKeyByte(publicKey);
-
-        String out = name + "is connected";
-        System.err.println(out);
-        return pubkey.getBytes();*/
-
-        //Key publicKeyOther = SerializationUtils.deserialize(publicKey);
-
+    public PublicKey initSecureChannel(String name, PublicKey publicKeyOther) throws RemoteException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
         if(name.contains(MixedNetworkServerInterface.DEF_NAME)){
             this.mixedServerNames.add(name);
         }
@@ -114,19 +84,6 @@ public class AuthenticationServer implements AuthenticationServerInterface {
 
         if(this.diffieEncrypt.containsKey(name)){
             //Key keyOther = this.diffieEncrypt.get(idString);
-
-            /*List<byte []> tokens = generateTokens(AuthenticationServerInterface.NUMBER_TOKENS_SESSION);
-            String tokensString= "";
-
-            for (byte[] token: tokens) {
-                tokensString += Base64.getEncoder().encodeToString(token);
-                tokensString += AuthenticationServerInterface.DIV_TOKEN;
-            }*/
-
-            /*ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(bos);
-            oos.writeObject(tokensString);
-            byte[] bytes = bos.toByteArray();*/
 
 
             byte[] token = generateToken();
@@ -154,20 +111,7 @@ public class AuthenticationServer implements AuthenticationServerInterface {
     }
 
     @Override
-    public PublicKey getPublicKeySignNoEnc(String autToken){
-        return this.pair.getPublic();
-    }
-
-    @Override
-    public PublicKey getPublicKeySign(byte[] authToken) throws Exception {
-        /*byte[] authTokenEnc =  this.diffieEncrypt.decryptBytes(authToken);
-
-        byte[] publicKeySer = SerializationUtils.serialize(this.pair.getPublic());
-
-        return this.diffieEncrypt.encryptBytes(publicKeySer);*/
-
-        //return this.asymEncrypt.do_RSAEncryption(publicKeySer, this.publickeysAs.get(authTokenEnc));
-
+    public PublicKey getPublicKeySign(String autToken){
         return this.pair.getPublic();
     }
 
@@ -183,9 +127,6 @@ public class AuthenticationServer implements AuthenticationServerInterface {
 
         //Getting the privatekey from the key pair
         this.privKey = pair.getPrivate();
-
-        //Getting the publicKey from the key pair
-        this.publicKey = pair.getPublic();
 
         //Creating a Signature object
         this.sign = Signature.getInstance(AuthenticationServerInterface.SIGN_INSTANCE);

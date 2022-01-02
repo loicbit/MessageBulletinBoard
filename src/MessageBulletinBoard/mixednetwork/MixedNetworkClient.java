@@ -8,7 +8,7 @@ import MessageBulletinBoard.data.INFO_MESSAGE;
 
 import javax.crypto.SecretKey;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -17,27 +17,23 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 
 public class MixedNetworkClient {
-    private List<byte[]> tokens;
+    private final List<byte[]> tokens;
     private MixedNetworkServerInterface mixedNetworkServerStub;
     private Registry registry;
-    private String nameUser;
+    private final String nameUser;
     //private AsymEncrypt asymEncrypt;
     private Key publicKeyMixedServer;
-    private DiffieH symEncryptServer;
+    private final DiffieH symEncryptServer;
 
-    private MessageDigest md;
+    private final MessageDigest md;
 
-    private boolean isEncrypted = false;
     private boolean publicKeysSend = false;
 
     CellLocationPair nextCellLocationPairAB = null;
     CellLocationPair nextCellLocationPairBA = null;
 
-    private DiffieH symEncryptAB;
-    private DiffieH symEncryptBA;
-
-
-
+    private final DiffieH symEncryptAB;
+    private final DiffieH symEncryptBA;
 
     public MixedNetworkClient(String nameContact, String nameUser) throws Exception {
         this.nameUser = nameUser;
@@ -66,22 +62,13 @@ public class MixedNetworkClient {
     }
 
     public void initMixedNetwork() throws RemoteException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
-        //todo: return boolean if succeed
         PublicKey publicKeyUserSer = this.symEncryptServer.getPubkeyObject();
-
-        //byte[] publicKeyUserSer = this.asymEncrypt.getPublicKeySer();
 
         PublicKey publicKeyOtherSer = this.mixedNetworkServerStub.initContact(this.nameUser, publicKeyUserSer);
         this.symEncryptServer.generateSecretKeyObject(publicKeyOtherSer);
     }
 
-    //private boolean verifyTokens(List<byte[]> tokens){
-    //    return false;
-    //}
-
     public void setNextCellLocationPairAB(CellLocationPair next){
-        //todo first check if there is
-        //this.generateStateHashAB();
         this.nextCellLocationPairAB = next;
     }
 
@@ -92,14 +79,10 @@ public class MixedNetworkClient {
     public INFO_MESSAGE sendMessage(String message) throws Exception {
         // In case publickeys not yet send, send them
         if(!this.publicKeysSend){
-            //this.generateStateHashAB();
             sendCryptoKeys();
         }
 
         CellLocationPair locationCurrentMessage = this.nextCellLocationPairAB;
-
-        // Generate hash of the cell to send
-        //this.generateStateHashAB();
 
         if(locationCurrentMessage != null){
             //String token = getToken();
@@ -174,7 +157,6 @@ public class MixedNetworkClient {
         }
 
         if (this.nextCellLocationPairBA != null) {
-            //if(this.tokens.isEmpty()) return INFO_MESSAGE.NO_TOKENS_AIV.name();
             byte[] token = this.tokens.get(0);
 
             byte[] hashBA = this.getHash(COM_DIR.BA);
@@ -200,7 +182,7 @@ public class MixedNetworkClient {
 
                     this.symEncryptBA.setSeed(seedBA);
 
-                    // In case publickeys not yet send, send them
+                    // In case publickeys not yet sent, send them
                     if(!this.publicKeysSend) sendCryptoKeys();
 
                 }else{
@@ -220,19 +202,6 @@ public class MixedNetworkClient {
         tokensRec.forEach((token)->{ this.tokens.add((byte[]) token);});
     }
 
-    /*
-    public void addTokensServer(LinkedList tokensRec) {
-        //todo handle exception with info message
-        tokensRec.forEach((token) -> {
-            byte[] tokenEnc =  this.symEncryptServer.encryptBytes((byte[]) token);
-            try {
-                this.mixedNetworkServerStub.addToken(tokenEnc, BulletinBoardInterface.emptyMessage,this.nameUser);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }*/
-
     private String[] prepareMessage(String message, CellLocationPair locationCurrentMessage){
         this.nextCellLocationPairAB = null;
         String [] result = new String[2];
@@ -242,9 +211,9 @@ public class MixedNetworkClient {
         int index = rand.nextInt(BulletinBoardInterface.NUMBER_CELLS *100)%BulletinBoardInterface.NUMBER_CELLS;
 
 
-        byte[] array = new byte[BulletinBoardInterface.securityParam];
+        byte[] array = new byte[BulletinBoardInterface.TAG_LENGTH];
         new Random().nextBytes(array);
-        String tag = new String(array, Charset.forName("ASCII"));
+        String tag = new String(array, StandardCharsets.US_ASCII);
 
         CellLocationPair nextLocationCell = new CellLocationPair(index, tag);
 
@@ -262,7 +231,7 @@ public class MixedNetworkClient {
 
     private String splitUMessage(String message){
         this.nextCellLocationPairBA = null;
-        String splitted[] = message.split(BulletinBoardInterface.messageDiv);
+        String[] splitted = message.split(BulletinBoardInterface.messageDiv);
         String messageCell = splitted[0];
         int nextIdx = Integer.valueOf(splitted[1]);
         String nextTag = splitted[2];
@@ -278,13 +247,6 @@ public class MixedNetworkClient {
         return this.symEncryptAB.isSecurd() && this.symEncryptBA.isSecurd();
     }
 
-    /*
-    private void generateStateHashAB(){
-        if(this.nextCellLocationPairAB == null) this.hashAB = null;
-        else{
-            this.hashAB = this.nextCellLocationPairAB.getHash().getBytes(StandardCharsets.UTF_8);
-        }
-    }*/
 
     private byte[] getHash(COM_DIR direction) throws NoSuchAlgorithmException{
         CellLocationPair locPair = null;

@@ -28,16 +28,11 @@ public class UserGui {
     private JButton buttonGetAuthenticated;
 
     private UserServer userServer;
-    private HashMap<String, UserClient>  userClient = new HashMap();
+    private final HashMap<String, UserClient>  userClient = new HashMap();
 
     private AuthenticationClient authClient;
-    private AuthenticationServerInterface authServerStub;
 
-    //AssymEncrypt assymEncrypt = new AssymEncrypt();
-
-    //private BulletinBoardClient boardClient;
-
-    private HashMap<String, String> conversation = new HashMap();
+    private final HashMap<String, String> conversation = new HashMap();
     private String nameUser;
 
     public UserGui() {
@@ -85,7 +80,6 @@ public class UserGui {
         });
 
         buttonGetAuthenticated.addActionListener(new ActionListener() {
-            //todo: throw except username not yet set.
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -128,24 +122,16 @@ public class UserGui {
         this.nameUser = nameUser;
 
         this.authClient = new AuthenticationClient(this.nameUser, true);
-        this.authClient.initAuthServer(false);
-
-
-
-
+        this.authClient.initAuthServer();
 
         try{
             this.userServer = new UserServer(nameUser);
         }catch(Exception ex){
             System.out.println(ex);
-            //todo: print notification
-            //      use different exceptions to notify
         }
     }
 
     private INFO_MESSAGE authenticate() throws Exception {
-        // todo notify if it fails
-        //
         String currentContact = String.valueOf(comboBoxContacts.getSelectedItem());
 
         if(this.userClient.get(currentContact)!=null){
@@ -163,14 +149,12 @@ public class UserGui {
     }
 
     private void addContact(String nameContact) throws Exception {
-        //todo : fix init with new, if you can't find them
         comboBoxContacts.addItem(nameContact);
 
         connectContact(nameContact);
     }
 
     private void connectContact(String nameContact) throws Exception {
-        //todo: connect new user
         Boolean exchanged = false;
 
         if(!this.userClient.containsKey(nameContact)){
@@ -178,31 +162,26 @@ public class UserGui {
             this.authenticate();
         }
 
-        if(!this.isConnected(nameContact)){
-            try{
-                exchanged =  this.userClient.get(nameContact).symmetricKeyExchange(nameContact);
+        if(!this.isConnected(nameContact)) {
+            try {
+                exchanged = this.userClient.get(nameContact).asymmetricKeyExchange(nameContact);
                 Key publicKeyOther = this.userServer.getPublicKeyContact(nameContact);
                 this.userClient.get(nameContact).setPublicKeyContact(publicKeyOther);
 
                 this.userClient.get(nameContact).sendPublicKeys();
 
-            }catch(RemoteException ex){
-                //todo: note contact not available to connect
+            } catch (RemoteException ex) {
+
             }
 
-            if(exchanged){
+            if (exchanged) {
                 this.buttonConfirmContactName.setEnabled(false);
             }
-
-        }else{
-            //todo message already connected
         }
     }
 
     private void sendMessage(String name, String message) throws Exception {
-        //todo handle null client
         if(this.userClient.containsKey(name) && this.userClient.get(name).isConnected()){
-            //this.to
             INFO_MESSAGE sent=  this.userClient.get(name).sendMessageBoard(message);
 
             if(sent!=INFO_MESSAGE.MESSAGE_SENT){
@@ -213,7 +192,6 @@ public class UserGui {
                 }
             }
         }else{
-            //todo: print error message
         }
     }
 
@@ -247,7 +225,6 @@ public class UserGui {
         }
     }
 
-    // todo update layout
     private void updateConversation(){
         String currentContact = String.valueOf(comboBoxContacts.getSelectedItem());
 
@@ -267,21 +244,11 @@ public class UserGui {
             this.userClient.get(contactName).setFirstCellPair(cellAB, cellBA);
 
 
-            if(cellAB != null && cellBA != null) return true;
-            else return false;
+            return cellAB != null && cellBA != null;
 
-        }else if(statusClient){
-            return true;
-        }
+        }else return statusClient;
 
-        //todo check if contact is connected via client or server
-        return false;
     }
-
-    private void updateState(){
-        //get latest state of bullentin, send to server.
-    }
-
     public static void main(String[] args) {
         JFrame frame = new JFrame("User");
 
